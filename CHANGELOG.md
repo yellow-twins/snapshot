@@ -17,3 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   real DB credentials live only in web-context env vars and are absent from the SSH shell.
 - `snapshot:doctor` now actively verifies remote database reachability and gives a
   targeted hint when the DB host is container-internal. (M2)
+- Prefer typo3_console for the database transfer: `database:export` on the remote (when
+  available) and `database:import` locally. TYPO3 resolves the connection itself, so no
+  credentials need to be extracted. `helhum/typo3-console` is now a hard requirement;
+  mysqldump/mysql remains a fallback for source servers without typo3_console. Verified
+  end-to-end against a live staging server. (M2)

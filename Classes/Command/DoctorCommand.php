@@ -102,6 +102,12 @@ final class DoctorCommand extends Command
 
     private function checkDatabase(SymfonyStyle $io, EnvironmentConfig $environment): bool
     {
+        if ($this->databaseDumpService->remoteHasTypo3Console($environment)) {
+            $io->writeln($this->line(true, 'Remote typo3_console database:export (TYPO3 resolves credentials itself)'));
+
+            return true;
+        }
+
         try {
             $connection = $this->connectionResolver->resolveRemote($environment, $this->transport);
         } catch (SnapshotException $e) {

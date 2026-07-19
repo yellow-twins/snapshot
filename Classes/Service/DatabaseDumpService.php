@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YellowTwins\Snapshot\Service;
 
 use Symfony\Component\Process\Process;
+use TYPO3\CMS\Core\Core\Environment;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnection;
 use YellowTwins\Snapshot\Exception\SnapshotException;
@@ -59,6 +60,43 @@ final class DatabaseDumpService
     }
 
     /**
+     * Whether the remote provides typo3_console's `database:export`. When it does, we prefer it:
+     * TYPO3 bootstraps and resolves the real DB connection itself (including credentials that
+     * only exist as web-context environment variables), so we never need to extract credentials.
+     */
+    public function remoteHasTypo3Console(EnvironmentConfig $environment): bool
+    {
+        $binary = escapeshellarg($environment->remoteTypo3Binary());
+        $command = sprintf('test -x %s && %s database:export --help >/dev/null 2>&1 && echo yes', $binary, $binary);
+        $result = $this->transport->run($environment, $command, null, 60);
+
+        return $result->isSuccessful() && str_contains($result->stdout, 'yes');
+    }
+
+    /**
+     * Dumps the remote database with `typo3 database:export`, streaming SQL into the local file.
+     *
+     * @param list<string> $excludePatterns Table name / wildcard patterns passed as -e options
+     */
+    public function dumpRemoteViaConsole(EnvironmentConfig $environment, array $excludePatterns, string $targetFile): void
+    {
+        $parts = [escapeshellarg($environment->remoteTypo3Binary()), 'database:export', '-c', 'Default'];
+        foreach ($excludePatterns as $pattern) {
+            $parts[] = '-e';
+            $parts[] = escapeshellarg($pattern);
+        }
+
+        $result = $this->transport->run($environment, implode(' ', $parts), $targetFile, null);
+        if (!$result->isSuccessful()) {
+            @unlink($targetFile);
+            throw new SnapshotException(
+                sprintf('Remote typo3_console database:export failed: %s', $this->firstLine($result->stderr, 'exit code ' . $result->exitCode)),
+                1_752_900_530,
+            );
+        }
+    }
+
+    /**
      * Verifies that the given database is reachable and selectable on the remote.
      */
     public function remoteConnectionCheck(EnvironmentConfig $environment, DatabaseConnection $connection): CommandResult
@@ -68,6 +106,41 @@ final class DatabaseDumpService
         return $this->transport->run($environment, $command, null, 30);
     }
 
+    /**
+     * Imports a dump into the local database via typo3_console, which uses TYPO3's own
+     * (already bootstrapped) connection — no need to reconstruct client credentials.
+     */
+    public function importLocalViaConsole(string $file): void
+    {
+        $binary = Environment::getProjectPath() . '/vendor/bin/typo3';
+        if (!is_file($binary)) {
+            throw new SnapshotException(
+                sprintf('Local typo3 console binary not found at "%s". Is helhum/typo3-console installed?', $binary),
+                1_752_900_540,
+            );
+        }
+
+        $handle = @fopen($file, 'rb');
+        if ($handle === false) {
+            throw new SnapshotException(sprintf('Unable to read dump file "%s".', $file), 1_752_900_541);
+        }
+
+        $process = new Process([PHP_BINARY, $binary, 'database:import']);
+        $process->setTimeout(null);
+        $process->setInput($handle);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new SnapshotException(
+                sprintf('Local database import failed: %s', $this->firstLine($process->getErrorOutput(), 'exit code ' . (string)$process->getExitCode())),
+                1_752_900_542,
+            );
+        }
+    }
+
+    /**
+     * Fallback import via the mysql client for setups without typo3_console.
+     */
     public function importLocalFromFile(DatabaseConnection $local, string $file): void
     {
         $handle = @fopen($file, 'rb');

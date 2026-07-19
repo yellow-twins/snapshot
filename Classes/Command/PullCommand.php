@@ -127,24 +127,34 @@ final class PullCommand extends Command
     private function pullDatabase(SymfonyStyle $io, EnvironmentConfig $environment, array $excludePatterns, bool $dryRun): void
     {
         $io->section('Database');
-        $remote = $this->connectionResolver->resolveRemote($environment, $this->transport);
+        $useConsole = $this->databaseDumpService->remoteHasTypo3Console($environment);
 
         if ($dryRun) {
-            $io->writeln(sprintf('Would dump remote database "%s" and import it locally.', $remote->dbname));
+            if ($useConsole) {
+                $io->writeln('Would dump the remote database via typo3_console (vendor/bin/typo3 database:export).');
+            } else {
+                $remote = $this->connectionResolver->resolveRemote($environment, $this->transport);
+                $io->writeln(sprintf('Would dump remote database "%s" via mysqldump and import it locally.', $remote->dbname));
+            }
             if ($excludePatterns !== []) {
-                $io->writeln('Excluded table data: ' . implode(', ', $excludePatterns));
+                $io->writeln('Excluded tables: ' . implode(', ', $excludePatterns));
             }
 
             return;
         }
 
-        $local = $this->connectionResolver->resolveLocal();
         $dumpFile = $this->createTempFile();
         try {
-            $io->writeln('Dumping remote database…');
-            $this->databaseDumpService->dumpRemoteToFile($environment, $remote, $excludePatterns, $dumpFile);
-            $io->writeln('Importing into local database…');
-            $this->databaseDumpService->importLocalFromFile($local, $dumpFile);
+            if ($useConsole) {
+                $io->writeln('Dumping remote database via typo3_console…');
+                $this->databaseDumpService->dumpRemoteViaConsole($environment, $excludePatterns, $dumpFile);
+            } else {
+                $remote = $this->connectionResolver->resolveRemote($environment, $this->transport);
+                $io->writeln('Dumping remote database via mysqldump…');
+                $this->databaseDumpService->dumpRemoteToFile($environment, $remote, $excludePatterns, $dumpFile);
+            }
+            $io->writeln('Importing into local database via typo3_console…');
+            $this->databaseDumpService->importLocalViaConsole($dumpFile);
         } finally {
             @unlink($dumpFile);
         }

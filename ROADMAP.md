@@ -41,10 +41,15 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] Command `snapshot:doctor` — preflight (local tools, SSH, remote settings.php/fileadmin/mysqldump)
 - [x] Command `snapshot:list-envs`
 - [x] Commands registered + smoke-tested in the playground; quality gates green
+- [x] **Prefer typo3_console** `database:export` (remote) + `database:import` (local): TYPO3
+      resolves credentials itself. mysqldump/mysql kept as fallback for remotes without it.
+      `helhum/typo3-console` added as a hard requirement.
+- [x] **Real end-to-end pull verified** against a live staging server (weltacker-stage):
+      167 pages / 968 tt_content / 554 sys_file imported locally in ~5s.
 - [ ] Transfer-size preview before pulling
-- [~] Unit tests (ConfigurationLoader done) + functional tests + a real end-to-end pull against a reachable source
+- [~] Unit tests (ConfigurationLoader done) + functional tests + more coverage on the DB command builder
 
-**Remaining for M2:** a real end-to-end pull against a reachable environment (needs a configured SSH source — e.g. a server or a second ddev box), size preview, more unit coverage on the DB command builder.
+**Remaining for M2:** transfer-size preview, more unit/functional coverage. Core is proven end-to-end.
 
 ---
 
