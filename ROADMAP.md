@@ -53,17 +53,23 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
-## M3 — Safety layer: GDPR scrubbing + post-pull hooks
+## M3 — Safety layer: GDPR scrubbing + post-pull hooks 🚧
 
 *Goal: pulled data is legally safe to hold locally and the site is immediately runnable.*
 
-- [ ] `ScrubbingService` — config-driven anonymization (fe_users, orders, addresses); sane presets for core + common EXT
-- [ ] Secret scrubbing (never pull `.env`, `AdditionalConfiguration.php`, API keys)
-- [ ] `PostPullHookRunner` — `cache:flush`, reference index, optional `upgrade:run`, reset BE admin password to a dev default, set Development context, disable prod mailer/payment
-- [ ] `--scrub` on by default; `--no-scrub` opt-out with explicit warning
-- [ ] Tests for scrubbing rulesets + hook runner
+- [x] `ScrubbingService` — runs on the local DB after import; built-in defaults (fe_users
+      anonymization, sys_log truncate) + config `scrub_rules` overrides. `{uid}` templates for
+      per-row uniqueness via `ScrubExpressionBuilder`.
+- [x] `PostPullHookRunner` — `cache_flush`, `referenceindex`, `reset_admin_password`
+      (bcrypt via PasswordHashFactory)
+- [x] `--no-scrub` opt-out with explicit warning; scrubbing on by default
+- [x] Unit tests for `ScrubExpressionBuilder`; verified end-to-end (scrub + hooks) against weltacker-stage
+- [ ] Secret-in-DB scrubbing presets (API tokens stored in DB tables) — `.env`/config files are
+      never transferred anyway (DB dump + fileadmin only)
+- [ ] Presets for common EXT (cart/orders, news) and a functional test of ScrubbingService
 
-**Done when:** a prod pull lands anonymized by default and the local site is cache-flushed, dev-context, with a known admin login — no manual post-steps.
+**Mostly done:** a prod pull lands anonymized by default, cache-flushed, with a known admin
+login (`SnapshotDev.1234!`). Remaining: more presets + a functional test.
 
 ---
 

@@ -8,6 +8,7 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use YellowTwins\Snapshot\Database\DatabaseConnection;
 use YellowTwins\Snapshot\Exception\ConfigurationException;
+use YellowTwins\Snapshot\Scrubbing\ScrubRule;
 
 /**
  * Loads and validates the project's .snapshot.yaml, resolving %env(NAME)% placeholders
@@ -170,7 +171,52 @@ final class ConfigurationLoader
             dbExclude: $this->stringList($defaults, 'db_exclude'),
             rsyncExcludes: $this->stringList($defaults, 'rsync_excludes'),
             postPull: $this->stringList($defaults, 'post_pull'),
+            scrubRules: $this->buildScrubRules($defaults),
         );
+    }
+
+    /**
+     * @param array<array-key, mixed> $defaults
+     * @return array<string, ScrubRule>
+     */
+    private function buildScrubRules(array $defaults): array
+    {
+        $rules = $defaults['scrub_rules'] ?? [];
+        if (!is_array($rules)) {
+            throw new ConfigurationException('"defaults.scrub_rules" must be a mapping.', 1_752_900_090);
+        }
+
+        $result = [];
+        foreach ($rules as $table => $rule) {
+            if (!is_string($table)) {
+                throw new ConfigurationException('Scrub rule table names must be strings.', 1_752_900_091);
+            }
+            if (!is_array($rule)) {
+                throw new ConfigurationException(sprintf('Scrub rule for "%s" must be a mapping.', $table), 1_752_900_092);
+            }
+
+            if (($rule['truncate'] ?? false) === true) {
+                $result[$table] = ScrubRule::truncate();
+
+                continue;
+            }
+
+            $set = $rule['set'] ?? [];
+            if (!is_array($set)) {
+                throw new ConfigurationException(sprintf('Scrub rule "%s.set" must be a mapping.', $table), 1_752_900_093);
+            }
+
+            $columns = [];
+            foreach ($set as $column => $template) {
+                if (!is_string($column) || !is_string($template)) {
+                    throw new ConfigurationException(sprintf('Scrub rule "%s.set" must map column names to string templates.', $table), 1_752_900_094);
+                }
+                $columns[$column] = $template;
+            }
+            $result[$table] = ScrubRule::set($columns);
+        }
+
+        return $result;
     }
 
     /**

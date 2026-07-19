@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- GDPR anonymization + post-pull hooks (M3). After the DB import, `ScrubbingService`
+  anonymizes personal data on the local copy (built-in fe_users/sys_log defaults, plus
+  `scrub_rules` overrides with `{uid}` templates). `PostPullHookRunner` runs `cache_flush`,
+  `referenceindex`, and `reset_admin_password` (to a known dev password). Scrubbing is on by
+  default; `--no-scrub` opts out with a warning. Verified end-to-end against a live server.
+
 - Project skeleton: composer setup, quality tooling (PHPStan max, Psalm, php-cs-fixer,
   Rector), CI matrix (TYPO3 v13 + v14), documentation stubs. (M1)
 - CLI pull over SSH (Pillar B core): `snapshot:pull`, `snapshot:doctor`,

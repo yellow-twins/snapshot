@@ -48,12 +48,21 @@ defaults:
     - "_processed_/**"
     - "_temp_/**"
 
+  # Extra/override anonymization rules, merged over the built-in defaults (fe_users, sys_log).
+  # Each table is either truncated or has columns overwritten. Use {uid} for per-row uniqueness.
+  scrub_rules:
+    tx_myshop_domain_model_order:
+      truncate: true
+    fe_users:
+      set:
+        email: "user{uid}@example.invalid"
+        username: "user{uid}"
+
   # Steps run automatically after a successful pull, to make the site immediately runnable.
   post_pull:
     - cache_flush
     - referenceindex
     - reset_admin_password
-    - set_dev_context
 
 guards:
   # Snapshot is pull-first. Pushing to production is disabled unless explicitly enabled.

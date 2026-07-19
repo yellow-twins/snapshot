@@ -15,7 +15,9 @@ use YellowTwins\Snapshot\Configuration\ConfigurationLoader;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnectionResolver;
 use YellowTwins\Snapshot\FileSource\FileSourceInterface;
+use YellowTwins\Snapshot\Scrubbing\ScrubbingService;
 use YellowTwins\Snapshot\Service\DatabaseDumpService;
+use YellowTwins\Snapshot\Service\PostPullHookRunner;
 use YellowTwins\Snapshot\Transport\TransportInterface;
 
 /**
@@ -30,6 +32,8 @@ final class PullCommand extends Command
         private readonly FileSourceInterface $fileSource,
         private readonly DatabaseConnectionResolver $connectionResolver,
         private readonly DatabaseDumpService $databaseDumpService,
+        private readonly ScrubbingService $scrubbingService,
+        private readonly PostPullHookRunner $postPullHookRunner,
     ) {
         parent::__construct();
     }
@@ -41,6 +45,7 @@ final class PullCommand extends Command
             ->addOption('db', null, InputOption::VALUE_NONE, 'Pull the database only')
             ->addOption('files', null, InputOption::VALUE_NONE, 'Pull the fileadmin only')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would happen without changing anything')
+            ->addOption('no-scrub', null, InputOption::VALUE_NONE, 'Skip GDPR anonymization of the imported database (not recommended)')
             ->addOption('yes', 'y', InputOption::VALUE_NONE, 'Do not ask for confirmation');
     }
 
@@ -82,6 +87,8 @@ final class PullCommand extends Command
             }
         }
 
+        $scrub = $configuration->defaults->scrub && !(bool)$input->getOption('no-scrub');
+
         if ($pullDatabase) {
             $this->pullDatabase($io, $environment, $configuration->defaults->dbExclude, $dryRun);
         }
@@ -90,12 +97,46 @@ final class PullCommand extends Command
             $this->pullFiles($io, $environment, $configuration->defaults->rsyncExcludes, $dryRun);
         }
 
-        $io->success($dryRun ? 'Dry run complete.' : 'Pull complete.');
-        if (!$dryRun && $configuration->defaults->postPull !== []) {
-            $io->note('Post-pull hooks are not implemented yet (planned for the next milestone): ' . implode(', ', $configuration->defaults->postPull));
+        if (!$dryRun && $pullDatabase) {
+            $this->scrubDatabase($io, $configuration->defaults->scrubRules, $scrub);
         }
 
+        if (!$dryRun && $configuration->defaults->postPull !== []) {
+            $this->runPostPullHooks($io, $configuration->defaults->postPull);
+        }
+
+        $io->success($dryRun ? 'Dry run complete.' : 'Pull complete.');
+
         return Command::SUCCESS;
+    }
+
+    /**
+     * @param array<string, \YellowTwins\Snapshot\Scrubbing\ScrubRule> $overrides
+     */
+    private function scrubDatabase(SymfonyStyle $io, array $overrides, bool $scrub): void
+    {
+        $io->section('Scrubbing');
+        if (!$scrub) {
+            $io->warning('Anonymization skipped (--no-scrub): the local database still contains personal data from the source.');
+
+            return;
+        }
+
+        $this->scrubbingService->scrub($overrides, static function (string $message) use ($io): void {
+            $io->writeln('  ' . $message);
+        });
+        $io->writeln('<info>Anonymization complete.</info>');
+    }
+
+    /**
+     * @param list<string> $hooks
+     */
+    private function runPostPullHooks(SymfonyStyle $io, array $hooks): void
+    {
+        $io->section('Post-pull hooks');
+        $this->postPullHookRunner->run($hooks, static function (string $message) use ($io): void {
+            $io->writeln('  ' . $message);
+        });
     }
 
     /**
