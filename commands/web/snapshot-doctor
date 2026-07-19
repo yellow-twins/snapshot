@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Description: Check local tools and remote reachability before a snapshot pull
+## Usage: snapshot-doctor [flags]
+## Example: "ddev snapshot-doctor --from=stage"
+
+vendor/bin/typo3 snapshot:doctor "$@"

@@ -13,3 +13,5 @@
 /ROADMAP.md          export-ignore
 /CONCEPT.md          export-ignore
 /design_handoff_snapshot_download/ export-ignore
+/install.yaml        export-ignore
+/commands/           export-ignore

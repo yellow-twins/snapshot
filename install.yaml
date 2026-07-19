@@ -1,0 +1,14 @@
+name: snapshot
+
+# DDEV add-on for the yellow-twins/snapshot TYPO3 extension.
+# Adds "ddev snapshot-pull / snapshot-doctor / snapshot-list-envs" web commands.
+# Install with: ddev add-on get yellow-twins/snapshot
+
+project_files:
+  - commands/web/snapshot-pull
+  - commands/web/snapshot-doctor
+  - commands/web/snapshot-list-envs
+
+post_install_actions:
+  - "echo 'Snapshot commands installed: ddev snapshot-pull / snapshot-doctor / snapshot-list-envs'"
+  - "echo 'Run \"ddev auth ssh\" once so pulls can reach your source over SSH.'"

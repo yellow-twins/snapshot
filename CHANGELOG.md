@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- DDEV add-on (M4): `ddev add-on get yellow-twins/snapshot` installs `ddev snapshot-pull`,
+  `ddev snapshot-doctor`, and `ddev snapshot-list-envs` web commands.
 - Transfer-size preview before a pull: fileadmin size via `rsync --stats`, database size via
   `information_schema` when credentials are available (shown in dry-run and before the
   confirmation prompt). Completes M2.

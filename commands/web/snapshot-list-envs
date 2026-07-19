@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Description: List the environments defined in .snapshot.yaml
+## Usage: snapshot-list-envs
+## Example: "ddev snapshot-list-envs"
+
+vendor/bin/typo3 snapshot:list-envs "$@"

@@ -74,15 +74,16 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
-## M4 — DDEV integration
+## M4 — DDEV integration ✅
 
 *Goal: `ddev snapshot-pull --from=live` — meet developers where they work.*
 
-- [ ] DDEV custom host commands wrapping the CLI (`ddev/commands/host/`)
-- [ ] Installable as a DDEV add-on (`install.yaml`, add-on metadata)
-- [ ] Docs section for the DDEV workflow
+- [x] DDEV custom web commands wrapping the CLI (`commands/web/snapshot-{pull,doctor,list-envs}`)
+- [x] Installable as a DDEV add-on (`install.yaml`, `ddev add-on get yellow-twins/snapshot`)
+- [x] Verified: add-on installs and `ddev snapshot-list-envs` runs in the playground
 
-**Done when:** `ddev add-on get yellow-twins/snapshot` installs the commands and `ddev snapshot-pull` works.
+**Done:** `ddev add-on get yellow-twins/snapshot` installs the commands; `ddev snapshot-pull`,
+`ddev snapshot-doctor`, `ddev snapshot-list-envs` work inside the container.
 
 ---
 

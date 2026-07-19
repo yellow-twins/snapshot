@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## Description: Pull database + fileadmin from a configured environment into this project
+## Usage: snapshot-pull [flags]
+## Example: "ddev snapshot-pull --from=stage --dry-run"
+
+# Requires SSH access to the source from inside the container: run "ddev auth ssh" once.
+vendor/bin/typo3 snapshot:pull "$@"
