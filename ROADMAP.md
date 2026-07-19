@@ -9,40 +9,42 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
-## M1 — Skeleton & quality tooling
+## M1 — Skeleton & quality tooling ✅
 
 *Goal: a pushable, CI-green extension skeleton with all quality gates wired up.*
 
-- [ ] `composer.json` (`yellow-twins/snapshot`, extension key `snapshot`, PHP ^8.2, TYPO3 ^13.4 || ^14)
-- [ ] `ext_emconf.php`
-- [ ] Directory structure + `Configuration/Services.yaml` (autowiring)
-- [ ] PHPStan at **`max`** (`phpstan.neon` + phpstan-typo3 rules)
-- [ ] Psalm (L6+), php-cs-fixer + phpcs (TYPO3 coding standards), Rector (v13↔v14)
-- [ ] PHPUnit config (Unit + Functional), typo3/testing-framework
-- [ ] GitHub Actions CI matrix: TYPO3 v13 + v14 × PHP 8.2 / 8.3 (lint, cs, stan, psalm, tests)
-- [ ] Repo hygiene: `README`, `LICENSE` (GPL-2.0+), `CHANGELOG`, `CONTRIBUTING`, issue templates, `.editorconfig`, `.gitignore`, `.gitattributes`
-- [ ] XLIFF language file stub (en default)
+- [x] `composer.json` (`yellow-twins/snapshot`, extension key `snapshot`, PHP ^8.2, TYPO3 ^13.4 || ^14)
+- [x] `ext_emconf.php`
+- [x] Directory structure + `Configuration/Services.yaml` (autowiring)
+- [x] PHPStan at **`max`** (`phpstan.neon` + phpstan-typo3 rules) — green
+- [x] Psalm (L6), php-cs-fixer (TYPO3 coding standards), Rector (v13↔v14)
+- [x] PHPUnit config (Unit + Functional), typo3/testing-framework
+- [x] GitHub Actions CI matrix: TYPO3 v13 + v14 × PHP 8.2 / 8.3 (lint, cs, stan, psalm, tests)
+- [x] Repo hygiene: `README`, `LICENSE` (GPL-2.0+), `CHANGELOG`, `CONTRIBUTING`, issue templates, `.editorconfig`, `.gitignore`, `.gitattributes`
+- [x] XLIFF language file stub (en default)
+- [x] DDEV v13 playground testbed (extension bind-mounted + symlinked, TYPO3 recognizes it as active)
 
-**Done when:** `composer install` works and the full CI pipeline is green on both TYPO3 versions with an empty-but-valid extension.
+**Done:** quality gates green in a real TYPO3 v13 install. CI matrix still to be confirmed on GitHub once pushed.
 
 ---
 
-## M2 — Pillar B core: CLI pull over SSH (the hero)
+## M2 — Pillar B core: CLI pull over SSH (the hero) 🚧
 
 *Goal: `snapshot:pull --from=live` gets DB + fileadmin onto local. This alone replaces the throwaway scripts.*
 
-- [ ] `ConfigLoader` — parse `.snapshot.yaml` + `.env` (`%env(...)%`) interpolation + schema validation with helpful errors
-- [ ] `TransportInterface` + `SshTransport` (Symfony Process, key auth)
-- [ ] `FileSourceInterface` + `RsyncFileSource` (incremental, excludes, resumable)
-- [ ] `DatabaseDumpService` — remote `typo3 database:export` → stream → local import; sensible exclude defaults (cache_*, sessions, sys_log, sys_history)
-- [ ] `FileadminSyncService` — rsync fileadmin down (excludes `_processed_`, `_temp_`)
-- [ ] Command `snapshot:pull` (`--from`, `--db`, `--files`, `--dry-run`, `--tables`, `--yes`)
-- [ ] Command `snapshot:doctor` — preflight (SSH reachable, remote `typo3`, rsync, permissions)
-- [ ] Command `snapshot:list-envs`
-- [ ] Dry-run + transfer-size preview
-- [ ] Unit tests (services, config) + functional tests where feasible
+- [x] `ConfigurationLoader` — parse `.snapshot.yaml` + `%env(...)%` interpolation + schema validation with helpful errors
+- [x] `TransportInterface` + `SshTransport` (Symfony Process, key auth, ConnectTimeout)
+- [x] `FileSourceInterface` + `RsyncFileSource` (incremental, excludes)
+- [x] `DatabaseDumpService` — remote **mysqldump** (core has no `database:export`!) → stream → local `mysql` import; two-pass so excluded tables keep schema but lose data
+- [x] `DatabaseConnectionResolver` — local via ConnectionPool, remote via reading composer-mode `settings.php` over the transport
+- [x] Command `snapshot:pull` (`--from`, `--db`, `--files`, `--dry-run`, `--yes`) with confirmation
+- [x] Command `snapshot:doctor` — preflight (local tools, SSH, remote settings.php/fileadmin/mysqldump)
+- [x] Command `snapshot:list-envs`
+- [x] Commands registered + smoke-tested in the playground; quality gates green
+- [ ] Transfer-size preview before pulling
+- [~] Unit tests (ConfigurationLoader done) + functional tests + a real end-to-end pull against a reachable source
 
-**Done when:** from a configured project you can `snapshot:pull --from=stage` and get a working local DB + fileadmin, with `--dry-run` and `doctor` working. Extension usable as `require-dev` only; production untouched.
+**Remaining for M2:** a real end-to-end pull against a reachable environment (needs a configured SSH source — e.g. a server or a second ddev box), size preview, more unit coverage on the DB command builder.
 
 ---
 

@@ -7,4 +7,14 @@ services:
   YellowTwins\Snapshot\:
     resource: '../Classes/*'
     exclude:
-      - '../Classes/Configuration/*'
+      - '../Classes/Exception/*'
+      - '../Classes/Process/*'
+      - '../Classes/Configuration/EnvironmentConfig.php'
+      - '../Classes/Configuration/Defaults.php'
+      - '../Classes/Configuration/Guards.php'
+      - '../Classes/Configuration/SnapshotConfiguration.php'
+      - '../Classes/Database/DatabaseConnection.php'
+
+  # v1 has a single transport and file source; bind the interfaces to them.
+  YellowTwins\Snapshot\Transport\TransportInterface: '@YellowTwins\Snapshot\Transport\SshTransport'
+  YellowTwins\Snapshot\FileSource\FileSourceInterface: '@YellowTwins\Snapshot\FileSource\RsyncFileSource'

@@ -1,0 +1,154 @@
+<?php
+
+declare(strict_types=1);
+
+namespace YellowTwins\Snapshot\Service;
+
+use Symfony\Component\Process\Process;
+use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
+use YellowTwins\Snapshot\Database\DatabaseConnection;
+use YellowTwins\Snapshot\Exception\SnapshotException;
+use YellowTwins\Snapshot\Transport\TransportInterface;
+
+/**
+ * Dumps a remote database via mysqldump and imports it into the local database.
+ *
+ * The dump is produced in two passes so that excluded tables keep their structure but lose
+ * their data: pass 1 dumps the schema of all tables, pass 2 dumps data for every table
+ * except the excluded ones. This keeps the import valid while skipping cache/session bloat.
+ */
+final class DatabaseDumpService
+{
+    private const DUMP_FLAGS = ['--no-tablespaces', '--skip-comments'];
+
+    public function __construct(
+        private readonly TransportInterface $transport,
+    ) {}
+
+    /**
+     * Streams a remote dump into the given local file.
+     *
+     * @param list<string> $excludePatterns fnmatch patterns for tables whose data is skipped
+     */
+    public function dumpRemoteToFile(
+        EnvironmentConfig $environment,
+        DatabaseConnection $remote,
+        array $excludePatterns,
+        string $targetFile,
+    ): void {
+        $tables = $this->listRemoteTables($environment, $remote);
+        $excluded = $this->matchTables($tables, $excludePatterns);
+
+        $structure = $this->clientCommand('mysqldump', $remote, [...self::DUMP_FLAGS, '--no-data'], true);
+
+        $dataArgs = [...self::DUMP_FLAGS, '--no-create-info', '--single-transaction', '--quick'];
+        foreach ($excluded as $table) {
+            $dataArgs[] = '--ignore-table=' . $remote->dbname . '.' . $table;
+        }
+        $data = $this->clientCommand('mysqldump', $remote, $dataArgs, true);
+
+        $result = $this->transport->run($environment, $structure . ' && ' . $data, $targetFile, null);
+        if (!$result->isSuccessful()) {
+            @unlink($targetFile);
+            throw new SnapshotException(
+                sprintf('Remote database dump failed: %s', $this->firstLine($result->stderr, 'exit code ' . $result->exitCode)),
+                1_752_900_500,
+            );
+        }
+    }
+
+    public function importLocalFromFile(DatabaseConnection $local, string $file): void
+    {
+        $handle = @fopen($file, 'rb');
+        if ($handle === false) {
+            throw new SnapshotException(sprintf('Unable to read dump file "%s".', $file), 1_752_900_510);
+        }
+
+        $command = ['mysql', ...$local->clientArguments(), $local->dbname];
+        $process = new Process($command, null, ['MYSQL_PWD' => $local->password]);
+        $process->setTimeout(null);
+        $process->setInput($handle);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new SnapshotException(
+                sprintf('Local database import failed: %s', $this->firstLine($process->getErrorOutput(), 'exit code ' . (string)$process->getExitCode())),
+                1_752_900_511,
+            );
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function listRemoteTables(EnvironmentConfig $environment, DatabaseConnection $remote): array
+    {
+        $command = $this->clientCommand('mysql', $remote, ['-N', '-e', 'SHOW TABLES'], true);
+        $result = $this->transport->run($environment, $command, null, 60);
+        if (!$result->isSuccessful()) {
+            throw new SnapshotException(
+                sprintf('Could not list remote tables: %s', $this->firstLine($result->stderr, 'exit code ' . $result->exitCode)),
+                1_752_900_520,
+            );
+        }
+
+        $tables = [];
+        foreach (explode("\n", $result->stdout) as $line) {
+            $line = trim($line);
+            if ($line !== '') {
+                $tables[] = $line;
+            }
+        }
+
+        return $tables;
+    }
+
+    /**
+     * @param list<string> $tables
+     * @param list<string> $patterns
+     * @return list<string>
+     */
+    private function matchTables(array $tables, array $patterns): array
+    {
+        $matched = [];
+        foreach ($tables as $table) {
+            foreach ($patterns as $pattern) {
+                if (fnmatch($pattern, $table)) {
+                    $matched[] = $table;
+                    break;
+                }
+            }
+        }
+
+        return $matched;
+    }
+
+    /**
+     * Builds a shell-ready mysql/mysqldump command with the password passed via MYSQL_PWD.
+     *
+     * @param list<string> $extraArgs
+     */
+    private function clientCommand(string $binary, DatabaseConnection $connection, array $extraArgs, bool $includeDbName): string
+    {
+        $parts = ['MYSQL_PWD=' . escapeshellarg($connection->password), $binary];
+        foreach ([...$connection->clientArguments(), ...$extraArgs] as $argument) {
+            $parts[] = escapeshellarg($argument);
+        }
+        if ($includeDbName) {
+            $parts[] = escapeshellarg($connection->dbname);
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function firstLine(string $text, string $fallback): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return $fallback;
+        }
+        $lines = explode("\n", $text);
+
+        return trim($lines[0]);
+    }
+}
