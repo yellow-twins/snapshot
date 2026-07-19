@@ -1,0 +1,11 @@
+/vendor/
+/.Build/
+/composer.lock
+/public/
+.php-cs-fixer.cache
+.phpunit.result.cache
+.phpunit.cache/
+/var/
+.DS_Store
+/.snapshot.yaml
+/.env

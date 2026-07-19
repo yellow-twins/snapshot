@@ -1,0 +1,72 @@
+{
+    "name": "yellow-twins/snapshot",
+    "type": "typo3-cms-extension",
+    "description": "Developer provisioning for TYPO3: pull database + fileadmin from any environment to your local machine. Not a backup tool.",
+    "keywords": ["TYPO3", "provisioning", "sync", "fileadmin", "database", "ddev", "developer-experience"],
+    "homepage": "https://github.com/yellow-twins/snapshot",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Yellow Twins",
+            "homepage": "https://yellow-twins.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/yellow-twins/snapshot/issues",
+        "source": "https://github.com/yellow-twins/snapshot"
+    },
+    "require": {
+        "php": "^8.2",
+        "typo3/cms-core": "^13.4 || ^14.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.5",
+        "saschaegerer/phpstan-typo3": "^2.1",
+        "ssch/typo3-rector": "^3.1",
+        "typo3/cms-backend": "^13.4 || ^14.0",
+        "typo3/coding-standards": "^0.8",
+        "typo3/testing-framework": "^9.0",
+        "vimeo/psalm": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "YellowTwins\\Snapshot\\": "Classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "YellowTwins\\Snapshot\\Tests\\": "Tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "snapshot"
+        }
+    },
+    "scripts": {
+        "ci:php:cs": "php-cs-fixer fix --dry-run --diff",
+        "ci:php:stan": "phpstan analyse --no-progress",
+        "ci:php:psalm": "psalm --no-progress",
+        "ci:php:unit": "phpunit -c Build/phpunit/UnitTests.xml",
+        "ci:php:functional": "phpunit -c Build/phpunit/FunctionalTests.xml",
+        "fix:php:cs": "php-cs-fixer fix",
+        "ci": [
+            "@ci:php:cs",
+            "@ci:php:stan",
+            "@ci:php:psalm",
+            "@ci:php:unit"
+        ]
+    }
+}

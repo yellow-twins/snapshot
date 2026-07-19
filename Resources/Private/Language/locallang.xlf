@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="messages" date="2026-07-19T00:00:00Z" product-name="snapshot">
+        <header/>
+        <body>
+            <trans-unit id="module.title" resname="module.title">
+                <source>Snapshot</source>
+            </trans-unit>
+            <trans-unit id="module.description" resname="module.description">
+                <source>Pull database and fileadmin from another environment.</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

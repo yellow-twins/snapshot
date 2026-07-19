@@ -1,0 +1,50 @@
+# Snapshot configuration — copy to `.snapshot.yaml` (git-ignored) and adjust.
+# Anything sensitive (hosts, users, paths, IPs, credentials) belongs in `.env` and is
+# referenced here via %env(...)%. This file holds structure only and is safe to commit
+# in a redacted form.
+
+environments:
+  live:
+    transport: ssh          # ssh (v1) | kubectl (planned)
+    host: "%env(SNAP_LIVE_HOST)%"
+    user: "%env(SNAP_LIVE_USER)%"
+    port: 22
+    path: "%env(SNAP_LIVE_PATH)%"     # absolute path to the TYPO3 project root on the server
+    file_source: rsync      # rsync (v1) | s3 (planned)
+
+  stage:
+    transport: ssh
+    host: "%env(SNAP_STAGE_HOST)%"
+    user: "%env(SNAP_STAGE_USER)%"
+    port: 22
+    path: "%env(SNAP_STAGE_PATH)%"
+    file_source: rsync
+
+defaults:
+  # GDPR anonymization is ON by default. Never disable it for a production source without
+  # a very good reason.
+  scrub: true
+
+  # Tables never worth transferring (regenerable / noise).
+  db_exclude:
+    - "cache_*"
+    - "[bf]e_sessions"
+    - "sys_log"
+    - "sys_history"
+    - "sys_file_processedfile"
+
+  # fileadmin paths skipped during rsync (regenerable).
+  rsync_excludes:
+    - "_processed_/**"
+    - "_temp_/**"
+
+  # Steps run automatically after a successful pull, to make the site immediately runnable.
+  post_pull:
+    - cache_flush
+    - referenceindex
+    - reset_admin_password
+    - set_dev_context
+
+guards:
+  # Snapshot is pull-first. Pushing to production is disabled unless explicitly enabled.
+  push_to_live: false

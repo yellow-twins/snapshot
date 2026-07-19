@@ -1,0 +1,14 @@
+# Keep development-only files out of the packaged extension (composer/TER dist).
+/.github/            export-ignore
+/Build/              export-ignore
+/Tests/              export-ignore
+/.editorconfig       export-ignore
+/.gitattributes      export-ignore
+/.gitignore          export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/phpstan.neon        export-ignore
+/psalm.xml           export-ignore
+/rector.php          export-ignore
+/CONTRIBUTING.md     export-ignore
+/ROADMAP.md          export-ignore
+/CONCEPT.md          export-ignore
