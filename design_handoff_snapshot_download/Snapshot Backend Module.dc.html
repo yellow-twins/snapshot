@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1a1c1e"/><g fill="none" stroke="#ff8700" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="50" cy="34" rx="16" ry="7"/><path d="M34 34v20c0 3.8 7.2 7 16 7s16-3.2 16-7V34"/></g><g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M50 62v14M43 70l7 7 7-7"/></g></svg></template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:#f4f5f7}
+  a{color:#0b71b8;text-decoration:none}
+  a:hover{color:#095a92;text-decoration:underline}
+  @keyframes sn-spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#f4f5f7;font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1c1e;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased">
+
+  <div style="position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;height:53px;padding:0 20px;background:#fff;border-bottom:1px solid #d7d9dc">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;background:#fff6ec;color:#e6790a">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"></path></svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <div style="font-weight:700;font-size:16px;letter-spacing:-.01em">Snapshot</div>
+        <div style="font-size:11.5px;color:#6c7178;line-height:1">Environment sync</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #cfd2d6;border-radius:6px;background:#fff;color:#4a4f55;cursor:pointer" style-hover="background:#f0f1f3">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"></path><path d="M20 5v4h-4"></path><path d="M20 12a8 8 0 0 1-14 5l-2-2"></path><path d="M4 19v-4h4"></path></svg>
+      </button>
+      <button style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #cfd2d6;border-radius:6px;background:#fff;color:#4a4f55;cursor:pointer" style-hover="background:#f0f1f3">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.2 9.5a2.8 2.8 0 0 1 5.3 1c0 1.9-2.7 2.2-2.7 3.8"></path><circle cx="12" cy="17.4" r=".9" fill="currentColor" stroke="none"></circle></svg>
+      </button>
+    </div>
+  </div>
+
+  <div style="max-width:900px;margin:0 auto;padding:28px 20px 56px">
+
+    <div style="margin-bottom:18px">
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;letter-spacing:-.02em">Download a snapshot</h1>
+      <p style="margin:0;color:#6c7178;max-width:640px;text-wrap:pretty">Pull a fresh copy of this environment’s database and fileadmin to your local machine. Choose one, the other, or both.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#e0e2e5;border:1px solid #e0e2e5;border-radius:9px;overflow:hidden;margin-bottom:26px">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fbfbfc">
+        <span style="display:flex;color:#1e7a34"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg></span>
+        <div style="display:flex;flex-direction:column"><span style="font-weight:600;font-size:13px">GDPR anonymized</span><span style="font-size:11.5px;color:#7a7f85">personal data scrubbed</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fbfbfc">
+        <span style="display:flex;color:#1e7a34"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+        <div style="display:flex;flex-direction:column"><span style="font-weight:600;font-size:13px">Secrets scrubbed</span><span style="font-size:11.5px;color:#7a7f85">.env, keys, hashes removed</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fbfbfc">
+        <span style="display:flex;color:#1e7a34"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+        <div style="display:flex;flex-direction:column"><span style="font-weight:600;font-size:13px">Single-use link</span><span style="font-size:11.5px;color:#7a7f85">expires after download</span></div>
+      </div>
+    </div>
+
+    <sc-if value="{{ isIdle }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8a8f95;margin-bottom:12px">Select what to include</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+
+        <div onClick="{{ toggleDb }}" style="position:relative;padding:18px;background:#fff;border:2px solid #e0e2e5;border-color:{{ dbBorderColor }};background-color:{{ dbBg }};border-radius:10px;cursor:pointer;transition:border-color .15s,background-color .15s">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#eef4fb;color:#0b71b8"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"></path></svg></div>
+            <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:{{ accent }};color:#fff;opacity:{{ dbCheckOpacity }};transition:opacity .15s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg></span>
+          </div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:2px">Database</div>
+          <div style="font-size:13px;color:#6c7178;margin-bottom:12px">≈ 248 MB compressed export</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="font-size:11.5px;color:#565b61;background:#f0f1f3;border-radius:20px;padding:3px 9px">database:export</span>
+            <span style="font-size:11.5px;color:#565b61;background:#f0f1f3;border-radius:20px;padding:3px 9px">cache · logs · sessions excluded</span>
+          </div>
+        </div>
+
+        <div onClick="{{ toggleFa }}" style="position:relative;padding:18px;background:#fff;border:2px solid #e0e2e5;border-color:{{ faBorderColor }};background-color:{{ faBg }};border-radius:10px;cursor:pointer;transition:border-color .15s,background-color .15s">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#fff6ec;color:#e6790a"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg></div>
+            <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:{{ accent }};color:#fff;opacity:{{ faCheckOpacity }};transition:opacity .15s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg></span>
+          </div>
+          <div style="font-weight:700;font-size:16px;margin-bottom:2px">Fileadmin</div>
+          <div style="font-size:13px;color:#6c7178;margin-bottom:12px">≈ 3.2 GB archive</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="font-size:11.5px;color:#565b61;background:#f0f1f3;border-radius:20px;padding:3px 9px">rsync</span>
+            <span style="font-size:11.5px;color:#565b61;background:#f0f1f3;border-radius:20px;padding:3px 9px">_processed_ · _temp_ excluded</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;background:#fff;border:1px solid #e0e2e5;border-radius:10px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:600">{{ summaryText }}</span>
+          <span style="font-size:12.5px;color:#6c7178">{{ totalSize }}</span>
+        </div>
+        <button onClick="{{ prepare }}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border:none;border-radius:7px;font-family:inherit;font-size:14px;font-weight:600;color:#fff;background-color:{{ accent }};cursor:{{ prepareCursor }};opacity:{{ prepareOpacity }};transition:filter .15s" style-hover="filter:brightness(.93)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 11l5 4 5-4"></path><path d="M5 21h14"></path></svg>
+          Prepare download
+        </button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isPreparing }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:24px;background:#fff;border:1px solid #e0e2e5;border-radius:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <span style="display:flex;color:{{ accent }};animation:sn-spin .85s linear infinite"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.5"></path></svg></span>
+        <span style="font-weight:700;font-size:16px">Preparing snapshot…</span>
+      </div>
+      <p style="margin:0 0 18px 29px;font-size:13px;color:#6c7178">This runs server-side. Keep this tab open.</p>
+
+      <div style="height:8px;background:#eceef0;border-radius:20px;overflow:hidden;margin-bottom:22px">
+        <div style="height:100%;border-radius:inherit;background-color:{{ accent }};width:{{ progressPct }};transition:width .5s ease"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ steps }}" as="step" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 0">
+            <sc-if value="{{ step.isDone }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#eaf6ec;color:#1e7a34;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg></span></sc-if>
+            <sc-if value="{{ step.isActive }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;color:#7a7f85;animation:sn-spin .85s linear infinite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.5"></path></svg></span></sc-if>
+            <sc-if value="{{ step.isPending }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:#cfd2d6"></span></span></sc-if>
+            <span style="font-size:14px;color:{{ step.color }};font-weight:{{ step.weight }}">{{ step.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isReady }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:#eaf6ec;border:1px solid #c5e6cd;border-radius:10px;margin-bottom:14px">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#1e7a34;color:#fff;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg></span>
+        <div><div style="font-weight:700;font-size:15px;color:#155625">Snapshot ready</div><div style="font-size:12.5px;color:#3d6b48">Anonymized and scrubbed. Your download is armed below.</div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border:1px solid #ecd9a8;background:#fdf6e6;border-radius:10px;margin-bottom:18px">
+        <span style="display:flex;color:{{ expiryColor }};flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+        <span style="font-size:13px;color:#6b5410"><sc-if value="{{ expired }}" hint-placeholder-val="{{ false }}"><b>Links expired.</b> Prepare a new snapshot to download again.</sc-if><sc-if value="{{ notExpired }}" hint-placeholder-val="{{ true }}">Each link is single-use and expires in <b style="color:{{ expiryColor }};font-variant-numeric:tabular-nums">{{ countdown }}</b>. It stops working after one download.</sc-if></span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ artifacts }}" as="art" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fff;border:1px solid #e0e2e5;border-radius:11px">
+            <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:{{ art.iconBg }};color:{{ art.iconColor }};flex-shrink:0">
+              <sc-if value="{{ art.isDb }}" hint-placeholder-val="{{ true }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"></path></svg></sc-if>
+              <sc-if value="{{ art.isFa }}" hint-placeholder-val="{{ false }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg></sc-if>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:15px">{{ art.label }} <span style="font-weight:400;color:#8a8f95;font-size:13px">· {{ art.size }}</span></div>
+              <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#91959b;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ art.path }}</div>
+            </div>
+            <sc-if value="{{ art.available }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ art.onDl }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid #cfd2d6;border-radius:7px;background:#fff;font-family:inherit;font-size:13.5px;font-weight:600;color:#1a1c1e;cursor:pointer;flex-shrink:0" style-hover="background:#f0f1f3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 11l5 4 5-4"></path><path d="M5 21h14"></path></svg>
+                Download
+              </button>
+            </sc-if>
+            <sc-if value="{{ art.consumed }}" hint-placeholder-val="{{ false }}">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13px;font-weight:600;color:#1e7a34;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg>Downloaded · link used</span>
+            </sc-if>
+            <sc-if value="{{ art.dead }}" hint-placeholder-val="{{ false }}">
+              <span style="padding:9px 14px;font-size:13px;font-weight:600;color:#a5a9ad;flex-shrink:0">Expired</span>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ showCombined }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fbfbfc;border:1px dashed #cfd2d6;border-radius:11px">
+            <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9px;background:#eceef0;color:#4a4f55;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><rect x="1" y="3" width="22" height="5" rx="1"></rect><path d="M10 12h4"></path></svg></div>
+            <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">Combined archive <span style="font-weight:400;color:#8a8f95;font-size:13px">· 3.4 GB</span></div><div style="font-size:12.5px;color:#8a8f95;margin-top:1px">Database + fileadmin in one <code style="font-family:ui-monospace,monospace">.zip</code></div></div>
+            <sc-if value="{{ combinedAvailable }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ downloadCombined }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:none;border-radius:7px;background-color:{{ accent }};font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;cursor:pointer;flex-shrink:0" style-hover="filter:brightness(.93)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 11l5 4 5-4"></path><path d="M5 21h14"></path></svg>Download all</button>
+            </sc-if>
+            <sc-if value="{{ combinedConsumed }}" hint-placeholder-val="{{ false }}">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13px;font-weight:600;color:#1e7a34;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"></path></svg>Downloaded</span>
+            </sc-if>
+            <sc-if value="{{ combinedDead }}" hint-placeholder-val="{{ false }}">
+              <span style="padding:9px 14px;font-size:13px;font-weight:600;color:#a5a9ad;flex-shrink:0">Expired</span>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid #e6e8ea">
+        <span style="font-size:12px;color:#91959b">Generated just now · scrubbed · this action is audit-logged.</span>
+        <button onClick="{{ reset }}" style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border:1px solid #cfd2d6;border-radius:7px;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#4a4f55;cursor:pointer" style-hover="background:#f0f1f3"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5l2 2"></path><path d="M20 5v4h-4"></path><path d="M20 12a8 8 0 0 1-14 5l-2-2"></path><path d="M4 19v-4h4"></path></svg>Start over</button>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:940,&quot;height&quot;:720},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#1a1c1e&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#ff8700&quot;,&quot;#0b71b8&quot;,&quot;#1a1c1e&quot;],&quot;section&quot;:&quot;Theme&quot;},&quot;expiryMinutes&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:15,&quot;min&quot;:1,&quot;max&quot;:60,&quot;unit&quot;:&quot;min&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;startPhase&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;idle&quot;,&quot;options&quot;:[&quot;idle&quot;,&quot;ready&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+class Component extends DCLogic {
+  state = {
+    db: true, fileadmin: true,
+    phase: 'idle',
+    stepLabels: [], active: 0, progress: 0,
+    seconds: 900, expired: false,
+    dbDl: false, faDl: false, allDl: false,
+  };
+
+  get accent() { return this.props.accent || '#ff8700'; }
+  get expiryMins() { return this.props.expiryMinutes || 15; }
+
+  componentDidMount() {
+    if (this.props.startPhase === 'ready') this.goReady();
+  }
+  componentWillUnmount() { clearInterval(this.timer); clearInterval(this.cd); }
+
+  buildSteps() {
+    const s = [];
+    if (this.state.db) s.push('Exporting database (database:export)');
+    s.push('Anonymizing data & scrubbing secrets');
+    if (this.state.fileadmin) s.push('Archiving fileadmin (rsync)');
+    s.push('Signing single-use download token');
+    return s;
+  }
+
+  prepare = () => {
+    if (!(this.state.db || this.state.fileadmin) || this.state.phase !== 'idle') return;
+    const labels = this.buildSteps();
+    this.setState({ phase: 'preparing', stepLabels: labels, active: 0, progress: 0 });
+    this.timer = setInterval(() => {
+      this.setState(s => {
+        const next = s.active + 1;
+        if (next >= s.stepLabels.length) {
+          clearInterval(this.timer);
+          setTimeout(() => this.goReady(), 450);
+          return { active: s.stepLabels.length, progress: 100 };
+        }
+        return { active: next, progress: Math.round((next / s.stepLabels.length) * 100) };
+      });
+    }, 850);
+  };
+
+  goReady() {
+    clearInterval(this.timer);
+    this.setState({ phase: 'ready', seconds: this.expiryMins * 60, expired: false, dbDl: false, faDl: false, allDl: false });
+    clearInterval(this.cd);
+    this.cd = setInterval(() => {
+      this.setState(s => {
+        if (s.seconds <= 1) { clearInterval(this.cd); return { seconds: 0, expired: true }; }
+        return { seconds: s.seconds - 1 };
+      });
+    }, 1000);
+  }
+
+  reset = () => {
+    clearInterval(this.timer); clearInterval(this.cd);
+    this.setState({ phase: 'idle', active: 0, progress: 0 });
+  };
+
+  toggleDb = () => this.setState(s => ({ db: !s.db }));
+  toggleFa = () => this.setState(s => ({ fileadmin: !s.fileadmin }));
+
+  fmt(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  renderVals() {
+    const st = this.state, accent = this.accent;
+    const canPrepare = st.db || st.fileadmin;
+
+    let summaryText, totalSize;
+    if (st.db && st.fileadmin) { summaryText = 'Database + Fileadmin'; totalSize = '≈ 3.4 GB total'; }
+    else if (st.db) { summaryText = 'Database only'; totalSize = '≈ 248 MB'; }
+    else if (st.fileadmin) { summaryText = 'Fileadmin only'; totalSize = '≈ 3.2 GB'; }
+    else { summaryText = 'Nothing selected'; totalSize = 'Pick at least one source'; }
+
+    const steps = st.stepLabels.map((label, i) => ({
+      label,
+      isDone: i < st.active,
+      isActive: i === st.active,
+      isPending: i > st.active,
+      color: i < st.active ? '#1a1c1e' : (i === st.active ? '#1a1c1e' : '#a5a9ad'),
+      weight: i === st.active ? '600' : '400',
+    }));
+
+    const mask = 'a7f3';
+    const mk = (key, file, dl, isDb) => ({
+      key, isDb, isFa: !isDb,
+      label: isDb ? 'Database dump' : 'Fileadmin archive',
+      size: isDb ? '248 MB' : '3.2 GB',
+      iconBg: isDb ? '#eef4fb' : '#fff6ec',
+      iconColor: isDb ? '#0b71b8' : '#e6790a',
+      path: 'snapshot/dl/' + mask + '••••••••••/' + file,
+      available: !dl && !st.expired,
+      consumed: dl,
+      dead: !dl && st.expired,
+      onDl: () => { if (!st.expired) this.setState({ [key]: true }); },
+    });
+    const artifacts = [];
+    if (st.db) artifacts.push(mk('dbDl', 'database.sql.gz', st.dbDl, true));
+    if (st.fileadmin) artifacts.push(mk('faDl', 'fileadmin.tar.gz', st.faDl, false));
+
+    return {
+      isIdle: st.phase === 'idle',
+      isPreparing: st.phase === 'preparing',
+      isReady: st.phase === 'ready',
+      accent,
+      dbBorderColor: st.db ? accent : '#e0e2e5',
+      faBorderColor: st.fileadmin ? accent : '#e0e2e5',
+      dbBg: st.db ? '#fffaf3' : '#ffffff',
+      faBg: st.fileadmin ? '#fffaf3' : '#ffffff',
+      dbCheckOpacity: st.db ? '1' : '0',
+      faCheckOpacity: st.fileadmin ? '1' : '0',
+      toggleDb: this.toggleDb,
+      toggleFa: this.toggleFa,
+      summaryText, totalSize,
+      prepare: this.prepare,
+      prepareCursor: canPrepare ? 'pointer' : 'not-allowed',
+      prepareOpacity: canPrepare ? '1' : '.45',
+      steps,
+      progressPct: st.progress + '%',
+      countdown: this.fmt(st.seconds),
+      expired: st.expired,
+      notExpired: !st.expired,
+      expiryColor: st.seconds < 60 ? '#b23c2e' : '#b8860b',
+      artifacts,
+      showCombined: st.db && st.fileadmin,
+      combinedAvailable: !st.allDl && !st.expired,
+      combinedConsumed: st.allDl,
+      combinedDead: !st.allDl && st.expired,
+      downloadCombined: () => { if (!st.expired) this.setState({ allDl: true, dbDl: true, faDl: true }); },
+      reset: this.reset,
+    };
+  }
+}
+</script>
+</body>
+</html>
