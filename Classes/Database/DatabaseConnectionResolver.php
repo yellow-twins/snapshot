@@ -28,6 +28,13 @@ final class DatabaseConnectionResolver
 
     public function resolveRemote(EnvironmentConfig $environment, TransportInterface $transport): DatabaseConnection
     {
+        // An explicit db block in .snapshot.yaml always wins: many hostings inject the real
+        // credentials via web-context environment variables that are absent from the SSH shell,
+        // so reading settings.php would only yield container defaults.
+        if ($environment->database !== null) {
+            return $environment->database;
+        }
+
         $php = <<<'PHP'
             error_reporting(0);
             $c = require %s;

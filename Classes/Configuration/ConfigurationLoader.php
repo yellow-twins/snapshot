@@ -6,6 +6,7 @@ namespace YellowTwins\Snapshot\Configuration;
 
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
+use YellowTwins\Snapshot\Database\DatabaseConnection;
 use YellowTwins\Snapshot\Exception\ConfigurationException;
 
 /**
@@ -114,10 +115,39 @@ final class ConfigurationLoader
                 path: $this->requireStringValue($definition, 'path', $name),
                 fileSource: $fileSource,
                 php: $this->stringValue($definition, 'php', $name, 'php'),
+                database: $this->buildDatabase($definition, $name),
             );
         }
 
         return $result;
+    }
+
+    /**
+     * Parses the optional explicit "db" block of an environment.
+     *
+     * @param array<array-key, mixed> $definition
+     */
+    private function buildDatabase(array $definition, string $envName): ?DatabaseConnection
+    {
+        if (!array_key_exists('db', $definition)) {
+            return null;
+        }
+
+        $db = $definition['db'];
+        if (!is_array($db)) {
+            throw new ConfigurationException(sprintf('Environment "%s": "db" must be a mapping.', $envName), 1_752_900_080);
+        }
+
+        $socket = $this->stringValue($db, 'socket', $envName, '');
+
+        return new DatabaseConnection(
+            host: $this->stringValue($db, 'host', $envName, '127.0.0.1'),
+            port: $this->intValue($db, 'port', $envName, 3306),
+            dbname: $this->requireStringValue($db, 'name', $envName),
+            user: $this->requireStringValue($db, 'user', $envName),
+            password: $this->stringValue($db, 'password', $envName, ''),
+            unixSocket: $socket === '' ? null : $socket,
+        );
     }
 
     /**

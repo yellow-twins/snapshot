@@ -13,3 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `snapshot:list-envs`. Config via `.snapshot.yaml` with `%env(...)%` interpolation.
   Database transferred with mysqldump/mysql (two-pass, honours table excludes); fileadmin
   via rsync. Remote DB credentials resolved from the remote's `settings.php`. (M2)
+- Optional explicit `db:` block per environment (env-interpolated) for hostings where the
+  real DB credentials live only in web-context env vars and are absent from the SSH shell.
+- `snapshot:doctor` now actively verifies remote database reachability and gives a
+  targeted hint when the DB host is container-internal. (M2)

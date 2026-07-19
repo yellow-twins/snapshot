@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace YellowTwins\Snapshot\Configuration;
 
+use YellowTwins\Snapshot\Database\DatabaseConnection;
+
 /**
  * Immutable description of a single source environment (e.g. "live", "stage").
  */
@@ -18,6 +20,12 @@ final readonly class EnvironmentConfig
         public string $path,
         public string $fileSource,
         public string $php = 'php',
+        /**
+         * Explicit remote database connection. When null, Snapshot tries to read it from the
+         * remote settings.php — which only works if the credentials live there and not solely
+         * in web-context environment variables (a common hosting setup).
+         */
+        public ?DatabaseConnection $database = null,
     ) {}
 
     /**

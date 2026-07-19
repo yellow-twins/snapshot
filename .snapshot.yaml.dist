@@ -19,6 +19,16 @@ environments:
     port: 22
     path: "%env(SNAP_STAGE_PATH)%"
     file_source: rsync
+    # Optional explicit database connection. Recommended for the common hosting setup where
+    # the real credentials come from web-context environment variables (via additional.php)
+    # and are NOT present in the SSH shell — in that case reading settings.php is not enough.
+    # If omitted, Snapshot tries to read the connection from the remote settings.php.
+    db:
+      host: "%env(SNAP_STAGE_DB_HOST)%"
+      port: 3306
+      name: "%env(SNAP_STAGE_DB_NAME)%"
+      user: "%env(SNAP_STAGE_DB_USER)%"
+      password: "%env(SNAP_STAGE_DB_PASSWORD)%"
 
 defaults:
   # GDPR anonymization is ON by default. Never disable it for a production source without

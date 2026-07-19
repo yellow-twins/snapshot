@@ -14,6 +14,9 @@ use Symfony\Component\Process\ExecutableFinder;
 use TYPO3\CMS\Core\Core\Environment;
 use YellowTwins\Snapshot\Configuration\ConfigurationLoader;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
+use YellowTwins\Snapshot\Database\DatabaseConnectionResolver;
+use YellowTwins\Snapshot\Exception\SnapshotException;
+use YellowTwins\Snapshot\Service\DatabaseDumpService;
 use YellowTwins\Snapshot\Transport\TransportInterface;
 
 /**
@@ -25,6 +28,8 @@ final class DoctorCommand extends Command
     public function __construct(
         private readonly ConfigurationLoader $configurationLoader,
         private readonly TransportInterface $transport,
+        private readonly DatabaseConnectionResolver $connectionResolver,
+        private readonly DatabaseDumpService $databaseDumpService,
     ) {
         parent::__construct();
     }
@@ -90,7 +95,33 @@ final class DoctorCommand extends Command
         $mysqldumpOk = $this->remoteTest($environment, 'command -v mysqldump >/dev/null');
         $io->writeln($this->line($mysqldumpOk, 'Remote mysqldump'));
 
-        return $settingsOk && $fileadminOk && $mysqldumpOk;
+        $databaseOk = $this->checkDatabase($io, $environment);
+
+        return $settingsOk && $fileadminOk && $mysqldumpOk && $databaseOk;
+    }
+
+    private function checkDatabase(SymfonyStyle $io, EnvironmentConfig $environment): bool
+    {
+        try {
+            $connection = $this->connectionResolver->resolveRemote($environment, $this->transport);
+        } catch (SnapshotException $e) {
+            $io->writeln($this->line(false, 'Remote database credentials'));
+            $io->writeln('    ' . $e->getMessage());
+            $io->writeln('    Tip: add an explicit "db:" block to this environment in .snapshot.yaml.');
+
+            return false;
+        }
+
+        $source = $environment->database !== null ? '.snapshot.yaml' : 'remote settings.php';
+        $check = $this->databaseDumpService->remoteConnectionCheck($environment, $connection);
+        $connectionOk = $check->isSuccessful();
+        $io->writeln($this->line($connectionOk, sprintf('Remote database "%s" reachable (from %s)', $connection->dbname, $source)));
+        if (!$connectionOk) {
+            $io->writeln('    ' . trim($check->stderr));
+            $io->writeln('    Tip: the DB host may be container-internal; add an explicit "db:" block to .snapshot.yaml.');
+        }
+
+        return $connectionOk;
     }
 
     private function remoteTest(EnvironmentConfig $environment, string $command): bool

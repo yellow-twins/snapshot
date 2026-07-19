@@ -8,6 +8,7 @@ use Symfony\Component\Process\Process;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnection;
 use YellowTwins\Snapshot\Exception\SnapshotException;
+use YellowTwins\Snapshot\Process\CommandResult;
 use YellowTwins\Snapshot\Transport\TransportInterface;
 
 /**
@@ -55,6 +56,16 @@ final class DatabaseDumpService
                 1_752_900_500,
             );
         }
+    }
+
+    /**
+     * Verifies that the given database is reachable and selectable on the remote.
+     */
+    public function remoteConnectionCheck(EnvironmentConfig $environment, DatabaseConnection $connection): CommandResult
+    {
+        $command = $this->clientCommand('mysql', $connection, ['-N', '-e', 'SELECT 1'], true);
+
+        return $this->transport->run($environment, $command, null, 30);
     }
 
     public function importLocalFromFile(DatabaseConnection $local, string $file): void
