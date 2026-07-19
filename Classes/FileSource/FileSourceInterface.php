@@ -26,4 +26,11 @@ interface FileSourceInterface
         bool $dryRun,
         ?callable $onProgress = null,
     ): CommandResult;
+
+    /**
+     * Estimates the total transfer size in bytes, or null if it cannot be determined.
+     *
+     * @param list<string> $excludes
+     */
+    public function estimateBytes(EnvironmentConfig $environment, array $excludes): ?int;
 }

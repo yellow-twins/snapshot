@@ -28,7 +28,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
-## M2 — Pillar B core: CLI pull over SSH (the hero) 🚧
+## M2 — Pillar B core: CLI pull over SSH (the hero) ✅
 
 *Goal: `snapshot:pull --from=live` gets DB + fileadmin onto local. This alone replaces the throwaway scripts.*
 
@@ -46,10 +46,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
       `helhum/typo3-console` added as a hard requirement.
 - [x] **Real end-to-end pull verified** against a live staging server (weltacker-stage):
       167 pages / 968 tt_content / 554 sys_file imported locally in ~5s.
-- [x] Unit tests: ConfigurationLoader, TablePatternMatcher (exclude patterns), DatabaseConnection
-- [ ] Transfer-size preview before pulling
+- [x] Unit tests: ConfigurationLoader, TablePatternMatcher (exclude patterns), DatabaseConnection, ByteFormatter, rsync stats parser
+- [x] Transfer-size preview before pulling (fileadmin via rsync --stats; DB via information_schema when credentials are available)
 
-**Remaining for M2:** transfer-size preview. Core is proven end-to-end and unit-tested.
+**M2 complete:** proven end-to-end against a live server, unit + functional tested, size preview in place.
 
 ---
 

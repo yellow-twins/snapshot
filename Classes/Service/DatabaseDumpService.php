@@ -99,6 +99,26 @@ final class DatabaseDumpService
     }
 
     /**
+     * Returns the remote database size in bytes (data + index), or null if it cannot be read.
+     */
+    public function remoteDatabaseBytes(EnvironmentConfig $environment, DatabaseConnection $connection): ?int
+    {
+        $query = sprintf(
+            "SELECT COALESCE(SUM(data_length + index_length), 0) FROM information_schema.tables WHERE table_schema = '%s'",
+            str_replace("'", '', $connection->dbname),
+        );
+        $command = $this->clientCommand('mysql', $connection, ['-N', '-e', $query], false);
+        $result = $this->transport->run($environment, $command, null, 30);
+        if (!$result->isSuccessful()) {
+            return null;
+        }
+
+        $value = trim($result->stdout);
+
+        return ctype_digit($value) ? (int)$value : null;
+    }
+
+    /**
      * Verifies that the given database is reachable and selectable on the remote.
      */
     public function remoteConnectionCheck(EnvironmentConfig $environment, DatabaseConnection $connection): CommandResult

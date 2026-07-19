@@ -58,6 +58,37 @@ final class RsyncFileSource implements FileSourceInterface
         return new CommandResult($process->getExitCode() ?? 1, $process->getOutput(), $process->getErrorOutput());
     }
 
+    public function estimateBytes(EnvironmentConfig $environment, array $excludes): ?int
+    {
+        $command = ['rsync', '-an', '--stats', '-e', $this->sshCommand($environment)];
+        foreach ($excludes as $exclude) {
+            $command[] = '--exclude=' . $exclude;
+        }
+        $command[] = $this->target($environment) . ':' . $environment->remoteFileadminPath() . '/';
+        $command[] = rtrim(sys_get_temp_dir(), '/') . '/';
+
+        $process = new Process($command);
+        $process->setTimeout(null);
+        $process->run();
+        if (!$process->isSuccessful()) {
+            return null;
+        }
+
+        return $this->parseTotalBytes($process->getOutput());
+    }
+
+    /**
+     * Extracts the "Total file size" value (in bytes) from rsync --stats output.
+     */
+    public function parseTotalBytes(string $statsOutput): ?int
+    {
+        if (preg_match('/Total file size:\s*([\d,]+)/', $statsOutput, $matches) !== 1) {
+            return null;
+        }
+
+        return (int)str_replace(',', '', $matches[1]);
+    }
+
     private function sshCommand(EnvironmentConfig $environment): string
     {
         return sprintf('ssh -p %d -o BatchMode=yes -o StrictHostKeyChecking=accept-new', $environment->port);

@@ -14,11 +14,13 @@ use TYPO3\CMS\Core\Core\Environment;
 use YellowTwins\Snapshot\Configuration\ConfigurationLoader;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnectionResolver;
+use YellowTwins\Snapshot\Exception\SnapshotException;
 use YellowTwins\Snapshot\FileSource\FileSourceInterface;
 use YellowTwins\Snapshot\Scrubbing\ScrubbingService;
 use YellowTwins\Snapshot\Service\DatabaseDumpService;
 use YellowTwins\Snapshot\Service\PostPullHookRunner;
 use YellowTwins\Snapshot\Transport\TransportInterface;
+use YellowTwins\Snapshot\Util\ByteFormatter;
 
 /**
  * Pulls the database and/or fileadmin from a configured environment onto the local machine.
@@ -34,6 +36,7 @@ final class PullCommand extends Command
         private readonly DatabaseDumpService $databaseDumpService,
         private readonly ScrubbingService $scrubbingService,
         private readonly PostPullHookRunner $postPullHookRunner,
+        private readonly ByteFormatter $byteFormatter,
     ) {
         parent::__construct();
     }
@@ -78,7 +81,12 @@ final class PullCommand extends Command
             $io->note('Dry run — nothing will be written locally.');
         }
 
-        if (!$dryRun && !(bool)$input->getOption('yes')) {
+        $yes = (bool)$input->getOption('yes');
+        if ($dryRun || !$yes) {
+            $this->showPreview($io, $environment, $pullDatabase, $pullFiles, $configuration->defaults->rsyncExcludes);
+        }
+
+        if (!$dryRun && !$yes) {
             $io->warning('This overwrites your local ' . $this->scopeLabel($pullDatabase, $pullFiles) . '.');
             if (!$io->confirm('Continue?', false)) {
                 $io->writeln('Aborted.');
@@ -108,6 +116,33 @@ final class PullCommand extends Command
         $io->success($dryRun ? 'Dry run complete.' : 'Pull complete.');
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * @param list<string> $rsyncExcludes
+     */
+    private function showPreview(SymfonyStyle $io, EnvironmentConfig $environment, bool $pullDatabase, bool $pullFiles, array $rsyncExcludes): void
+    {
+        $io->section('Preview');
+        if ($pullDatabase) {
+            $bytes = $this->estimateDatabaseBytes($environment);
+            $io->writeln('  Database:  ' . ($bytes !== null ? '~' . $this->byteFormatter->format($bytes) : 'size unknown (no database credentials for a size query)'));
+        }
+        if ($pullFiles) {
+            $bytes = $this->fileSource->estimateBytes($environment, $rsyncExcludes);
+            $io->writeln('  Fileadmin: ' . ($bytes !== null ? '~' . $this->byteFormatter->format($bytes) : 'size unknown'));
+        }
+    }
+
+    private function estimateDatabaseBytes(EnvironmentConfig $environment): ?int
+    {
+        try {
+            $connection = $this->connectionResolver->resolveRemote($environment, $this->transport);
+        } catch (SnapshotException) {
+            return null;
+        }
+
+        return $this->databaseDumpService->remoteDatabaseBytes($environment, $connection);
     }
 
     /**

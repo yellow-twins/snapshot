@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Transfer-size preview before a pull: fileadmin size via `rsync --stats`, database size via
+  `information_schema` when credentials are available (shown in dry-run and before the
+  confirmation prompt). Completes M2.
 - GDPR anonymization + post-pull hooks (M3). After the DB import, `ScrubbingService`
   anonymizes personal data on the local copy (built-in fe_users/sys_log defaults, plus
   `scrub_rules` overrides with `{uid}` templates). `PostPullHookRunner` runs `cache_flush`,
