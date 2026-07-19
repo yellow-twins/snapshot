@@ -8,6 +8,7 @@ use Symfony\Component\Process\Process;
 use TYPO3\CMS\Core\Core\Environment;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnection;
+use YellowTwins\Snapshot\Database\TablePatternMatcher;
 use YellowTwins\Snapshot\Exception\SnapshotException;
 use YellowTwins\Snapshot\Process\CommandResult;
 use YellowTwins\Snapshot\Transport\TransportInterface;
@@ -25,6 +26,7 @@ final class DatabaseDumpService
 
     public function __construct(
         private readonly TransportInterface $transport,
+        private readonly TablePatternMatcher $tablePatternMatcher,
     ) {}
 
     /**
@@ -39,7 +41,7 @@ final class DatabaseDumpService
         string $targetFile,
     ): void {
         $tables = $this->listRemoteTables($environment, $remote);
-        $excluded = $this->matchTables($tables, $excludePatterns);
+        $excluded = $this->tablePatternMatcher->match($tables, $excludePatterns);
 
         $structure = $this->clientCommand('mysqldump', $remote, [...self::DUMP_FLAGS, '--no-data'], true);
 
@@ -185,26 +187,6 @@ final class DatabaseDumpService
         }
 
         return $tables;
-    }
-
-    /**
-     * @param list<string> $tables
-     * @param list<string> $patterns
-     * @return list<string>
-     */
-    private function matchTables(array $tables, array $patterns): array
-    {
-        $matched = [];
-        foreach ($tables as $table) {
-            foreach ($patterns as $pattern) {
-                if (fnmatch($pattern, $table)) {
-                    $matched[] = $table;
-                    break;
-                }
-            }
-        }
-
-        return $matched;
     }
 
     /**

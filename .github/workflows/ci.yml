@@ -16,6 +16,18 @@ jobs:
         php: ['8.2', '8.3']
         typo3: ['^13.4', '^14.0']
 
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: t3_func
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -50,4 +62,9 @@ jobs:
       - name: Functional tests
         run: composer ci:php:functional
         env:
-          typo3DatabaseDriver: pdo_sqlite
+          typo3DatabaseDriver: mysqli
+          typo3DatabaseHost: 127.0.0.1
+          typo3DatabasePort: 3306
+          typo3DatabaseName: t3_func
+          typo3DatabaseUsername: root
+          typo3DatabasePassword: root

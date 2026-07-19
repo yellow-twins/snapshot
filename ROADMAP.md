@@ -46,10 +46,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
       `helhum/typo3-console` added as a hard requirement.
 - [x] **Real end-to-end pull verified** against a live staging server (weltacker-stage):
       167 pages / 968 tt_content / 554 sys_file imported locally in ~5s.
+- [x] Unit tests: ConfigurationLoader, TablePatternMatcher (exclude patterns), DatabaseConnection
 - [ ] Transfer-size preview before pulling
-- [~] Unit tests (ConfigurationLoader done) + functional tests + more coverage on the DB command builder
 
-**Remaining for M2:** transfer-size preview, more unit/functional coverage. Core is proven end-to-end.
+**Remaining for M2:** transfer-size preview. Core is proven end-to-end and unit-tested.
 
 ---
 
@@ -63,13 +63,14 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `PostPullHookRunner` — `cache_flush`, `referenceindex`, `reset_admin_password`
       (bcrypt via PasswordHashFactory)
 - [x] `--no-scrub` opt-out with explicit warning; scrubbing on by default
-- [x] Unit tests for `ScrubExpressionBuilder`; verified end-to-end (scrub + hooks) against weltacker-stage
+- [x] Unit tests for `ScrubExpressionBuilder`; **functional test** of `ScrubbingService` on
+      MariaDB (anonymize / truncate / config override); verified end-to-end against weltacker-stage
 - [ ] Secret-in-DB scrubbing presets (API tokens stored in DB tables) — `.env`/config files are
       never transferred anyway (DB dump + fileadmin only)
-- [ ] Presets for common EXT (cart/orders, news) and a functional test of ScrubbingService
+- [ ] Presets for common EXT (cart/orders, news)
 
-**Mostly done:** a prod pull lands anonymized by default, cache-flushed, with a known admin
-login (`SnapshotDev.1234!`). Remaining: more presets + a functional test.
+**Done:** a prod pull lands anonymized by default, cache-flushed, with a known admin login
+(`SnapshotDev.1234!`), with unit + functional coverage. Remaining: more EXT presets.
 
 ---
 
