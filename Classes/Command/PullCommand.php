@@ -6,6 +6,7 @@ namespace YellowTwins\Snapshot\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -110,7 +111,7 @@ final class PullCommand extends Command
         }
 
         if (!$dryRun && $configuration->defaults->postPull !== []) {
-            $this->runPostPullHooks($io, $configuration->defaults->postPull);
+            $this->runPostPullHooks($io, $configuration->defaults->postPull, $pullDatabase);
         }
 
         $io->success($dryRun ? 'Dry run complete.' : 'Pull complete.');
@@ -166,12 +167,12 @@ final class PullCommand extends Command
     /**
      * @param list<string> $hooks
      */
-    private function runPostPullHooks(SymfonyStyle $io, array $hooks): void
+    private function runPostPullHooks(SymfonyStyle $io, array $hooks, bool $databaseWasPulled): void
     {
         $io->section('Post-pull hooks');
         $this->postPullHookRunner->run($hooks, static function (string $message) use ($io): void {
             $io->writeln('  ' . $message);
-        });
+        }, $databaseWasPulled);
     }
 
     /**
@@ -250,15 +251,28 @@ final class PullCommand extends Command
     {
         $io->section('Fileadmin');
         $localFileadmin = Environment::getPublicPath() . '/fileadmin';
+
+        // A live percentage is only available for a real transfer, not a dry run.
+        $progressBar = $dryRun ? null : $this->createFileProgressBar($io);
+
         $result = $this->fileSource->pullFileadmin(
             $environment,
             $localFileadmin,
             $excludes,
             $dryRun,
-            static function (string $chunk) use ($io): void {
-                $io->write($chunk);
+            $progressBar === null ? null : static function (int $percent) use ($progressBar): void {
+                $progressBar->setProgress($percent);
             },
         );
+
+        if ($progressBar !== null) {
+            if ($result->isSuccessful()) {
+                $progressBar->finish();
+            } else {
+                $progressBar->clear();
+            }
+            $io->newLine(2);
+        }
 
         if (!$result->isSuccessful()) {
             $io->error('Fileadmin sync failed: ' . trim($result->stderr));
@@ -266,6 +280,15 @@ final class PullCommand extends Command
             return;
         }
         $io->writeln('<info>Fileadmin synced.</info>');
+    }
+
+    private function createFileProgressBar(SymfonyStyle $io): ProgressBar
+    {
+        $progressBar = $io->createProgressBar(100);
+        $progressBar->setFormat(' Transferring fileadmin  %percent:3s%%  [%bar%]  %elapsed:6s%');
+        $progressBar->start();
+
+        return $progressBar;
     }
 
     private function createTempFile(): string

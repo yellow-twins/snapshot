@@ -59,10 +59,12 @@ defaults:
         username: "user{uid}"
 
   # Steps run automatically after a successful pull, to make the site immediately runnable.
+  # database_schema_update and reset_admin_password only run when the database was pulled.
   post_pull:
-    - cache_flush
+    - database_schema_update
     - referenceindex
     - reset_admin_password
+    - cache_flush
 
 guards:
   # Snapshot is pull-first. Pushing to production is disabled unless explicitly enabled.

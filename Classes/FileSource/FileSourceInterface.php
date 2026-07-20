@@ -16,8 +16,8 @@ interface FileSourceInterface
     public function supports(EnvironmentConfig $environment): bool;
 
     /**
-     * @param list<string>              $excludes   Path patterns excluded from the transfer
-     * @param callable(string): void|null $onProgress Receives raw output chunks for live display
+     * @param list<string>           $excludes   Path patterns excluded from the transfer
+     * @param callable(int): void|null $onProgress Receives the overall transfer percentage (0–100) for live progress display
      */
     public function pullFileadmin(
         EnvironmentConfig $environment,

@@ -11,8 +11,9 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Runs post-pull hooks that make a freshly pulled site immediately usable locally: flush caches,
- * rebuild the reference index, and reset backend admin passwords to a known development value.
+ * Runs post-pull hooks that make a freshly pulled site immediately usable locally: align the
+ * database schema to the local code, flush caches, rebuild the reference index, and reset backend
+ * admin passwords to a known development value.
  */
 final class PostPullHookRunner
 {
@@ -28,14 +29,24 @@ final class PostPullHookRunner
     /**
      * @param list<string>           $hooks
      * @param callable(string): void $onMessage
+     * @param bool                   $databaseWasPulled Whether the local database was replaced in this run.
+     *                                                  DB-only hooks are skipped when it was not.
      */
-    public function run(array $hooks, callable $onMessage): void
+    public function run(array $hooks, callable $onMessage, bool $databaseWasPulled = true): void
     {
         foreach ($hooks as $hook) {
             match ($hook) {
+                // Only additive changes (missing tables/fields) so the site boots with local code.
+                // Type changes (*.change) are deliberately excluded: they can fail on legacy remote
+                // data (e.g. a string value in a column the local schema defines as INT).
+                'database_schema_update' => $databaseWasPulled
+                    ? $this->console(['database:updateschema', '*.add'], $onMessage)
+                    : $onMessage('database_schema_update: skipped — the database was not pulled, the local schema is unchanged.'),
                 'cache_flush' => $this->console(['cache:flush'], $onMessage),
                 'referenceindex' => $this->console(['referenceindex:update'], $onMessage),
-                'reset_admin_password' => $this->resetAdminPasswords($onMessage),
+                'reset_admin_password' => $databaseWasPulled
+                    ? $this->resetAdminPasswords($onMessage)
+                    : $onMessage('reset_admin_password: skipped — the database was not pulled, local backend logins are unchanged.'),
                 'set_dev_context' => $onMessage('set_dev_context: skipped — the application context is set via the TYPO3_CONTEXT environment variable, not from here.'),
                 default => $onMessage(sprintf('unknown hook "%s" — skipped', $hook)),
             };
@@ -72,6 +83,17 @@ final class PostPullHookRunner
         $process->run();
 
         $label = implode(' ', $arguments);
-        $onMessage($process->isSuccessful() ? sprintf('%s done', $label) : sprintf('%s failed: %s', $label, trim($process->getErrorOutput())));
+        if ($process->isSuccessful()) {
+            $onMessage(sprintf('%s done', $label));
+
+            return;
+        }
+
+        // typo3_console prints failures to stdout, so fall back to it when stderr is empty.
+        $error = trim($process->getErrorOutput());
+        if ($error === '') {
+            $error = trim($process->getOutput());
+        }
+        $onMessage(sprintf('%s failed: %s', $label, $error));
     }
 }

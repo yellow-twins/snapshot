@@ -40,6 +40,9 @@ final class RsyncFileSource implements FileSourceInterface
         ];
         if ($dryRun) {
             $command[] = '--dry-run';
+        } else {
+            // Emit an overall transfer percentage we can turn into a progress bar.
+            $command[] = '--info=progress2';
         }
         foreach ($excludes as $exclude) {
             $command[] = '--exclude=' . $exclude;
@@ -49,9 +52,13 @@ final class RsyncFileSource implements FileSourceInterface
 
         $process = new Process($command);
         $process->setTimeout(null);
-        $process->run(static function (string $type, string $buffer) use ($onProgress): void {
-            if ($onProgress !== null) {
-                $onProgress($buffer);
+        $process->run(function (string $type, string $buffer) use ($onProgress): void {
+            if ($onProgress === null || $type !== Process::OUT) {
+                return;
+            }
+            $percent = $this->parseProgressPercent($buffer);
+            if ($percent !== null) {
+                $onProgress($percent);
             }
         });
 
@@ -87,6 +94,27 @@ final class RsyncFileSource implements FileSourceInterface
         }
 
         return (int)str_replace(',', '', $matches[1]);
+    }
+
+    /**
+     * Extracts the latest overall percentage from rsync --info=progress2 output.
+     *
+     * rsync overwrites its progress line with a carriage return, so a single output
+     * buffer may carry several updates; the last one is the most recent. Returns null
+     * when the buffer holds no percentage yet (e.g. while the file list is still built).
+     */
+    public function parseProgressPercent(string $buffer): ?int
+    {
+        if (preg_match_all('/(\d{1,3})%/', $buffer, $matches) < 1) {
+            return null;
+        }
+
+        $last = end($matches[1]);
+        if ($last === false) {
+            return null;
+        }
+
+        return max(0, min(100, (int)$last));
     }
 
     private function sshCommand(EnvironmentConfig $environment): string

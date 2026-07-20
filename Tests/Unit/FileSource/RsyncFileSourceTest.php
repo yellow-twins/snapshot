@@ -42,4 +42,25 @@ final class RsyncFileSourceTest extends TestCase
     {
         self::assertNull($this->fileSource->parseTotalBytes('some unrelated rsync output'));
     }
+
+    #[Test]
+    public function parsesLatestProgressPercentFromBuffer(): void
+    {
+        // rsync overwrites the line with \r, so a buffer may carry several updates.
+        $buffer = "        1,234,567  12%    1.23MB/s    0:00:20\r        9,876,543  87%    2.34MB/s    0:00:03";
+
+        self::assertSame(87, $this->fileSource->parseProgressPercent($buffer));
+    }
+
+    #[Test]
+    public function parsesSingleProgressPercent(): void
+    {
+        self::assertSame(0, $this->fileSource->parseProgressPercent('            0   0%    0.00kB/s    0:00:00'));
+    }
+
+    #[Test]
+    public function returnsNullWhenBufferHasNoPercent(): void
+    {
+        self::assertNull($this->fileSource->parseProgressPercent('sending incremental file list'));
+    }
 }
