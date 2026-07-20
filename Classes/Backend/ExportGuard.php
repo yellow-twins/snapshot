@@ -35,6 +35,16 @@ final class ExportGuard
         return new GuardResult($problems === [], $problems);
     }
 
+    /**
+     * Whether un-anonymized ("raw") database exports are permitted. Off by default; enabling it is
+     * an environment decision (like the other controls), never a backend-editable setting, so a mere
+     * backend admin can never export personal data without someone with server/.env access opting in.
+     */
+    public function allowsUnscrubbedExport(): bool
+    {
+        return getenv('SNAPSHOT_ALLOW_UNSCRUBBED') === '1';
+    }
+
     private function backendEnabled(): bool
     {
         return getenv('SNAPSHOT_BACKEND_ENABLED') === '1';

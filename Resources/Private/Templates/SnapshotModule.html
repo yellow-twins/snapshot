@@ -28,6 +28,10 @@
 .snapshot-module .tile { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; margin-bottom: 12px; }
 .snapshot-module .tile.db { background: #1f4f7a; color: #cfe6ff; }
 .snapshot-module .tile.fa { background: #7a4a12; color: #ffd9a8; }
+.snapshot-module .tile.raw { background: #5a1f1f; color: #ffd9d9; }
+.snapshot-module .card.danger.selected { border-color: #d9534f; background: color-mix(in srgb, #d9534f 10%, var(--surface)); }
+.snapshot-module .card.danger.selected .check { background: #d9534f; }
+.snapshot-module .chip.danger { color: #ffc4c4; background: color-mix(in srgb, #d9534f 24%, var(--surface-2)); }
 .snapshot-module .card .title { font-weight: 700; font-size: 16px; }
 .snapshot-module .card .size { color: var(--muted); font-size: 13px; }
 .snapshot-module .chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -88,7 +92,7 @@
         <f:case value="ready">
             <div class="callout success">
                 <h2>Snapshot ready</h2>
-                <div class="sz">Anonymized and scrubbed. Your download is armed below.</div>
+                <div class="sz">Your download is armed below.</div>
             </div>
             <div class="callout warn">
                 Each link is single-use and expires in <span id="snapshot-countdown" data-seconds="{expirySeconds}">--:--</span>.
@@ -127,6 +131,16 @@
                         <div class="chips"><span class="chip">rsync</span><span class="chip">_processed_ · _temp_ excluded</span></div>
                         <input type="checkbox" name="sources[]" value="files" checked="checked" hidden="hidden" />
                     </div>
+                    <f:if condition="{rawAllowed}">
+                        <div class="card danger" data-source="db_raw">
+                            <div class="check">&#10003;</div>
+                            <div class="tile raw">RAW</div>
+                            <div class="title">Database (raw)</div>
+                            <div class="size">un-anonymized — contains personal data</div>
+                            <div class="chips"><span class="chip danger">not scrubbed</span><span class="chip">for local debugging</span></div>
+                            <input type="checkbox" name="sources[]" value="db_raw" hidden="hidden" />
+                        </div>
+                    </f:if>
                 </div>
                 <div class="actionbar">
                     <div>

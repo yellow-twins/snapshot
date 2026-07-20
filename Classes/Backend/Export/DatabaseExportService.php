@@ -51,18 +51,47 @@ final class DatabaseExportService
     ) {}
 
     /**
-     * Builds the anonymized dump and returns the absolute path to the resulting .sql file in
-     * var/snapshot. The caller owns the file afterwards (hands it to the download-token service).
+     * Builds an SQL dump and returns the absolute path to the resulting .sql file in var/snapshot.
+     * The caller owns the file afterwards (hands it to the download-token service).
      *
+     * @param bool                         $scrub     Anonymize personal data (the safe default). When
+     *                                                false, the live database is dumped as-is — only
+     *                                                use for a raw export that the environment allows.
      * @param callable(string): void|null $onMessage Receives per-table scrubbing messages
      *
      * @throws DatabaseExportException when the platform is unsupported or the CREATE privilege is missing
      */
-    public function exportAnonymized(?callable $onMessage = null): string
+    public function export(bool $scrub = true, ?callable $onMessage = null): string
     {
         $this->assertMysqlPlatform();
-
         $live = $this->connectionResolver->resolveLocal();
+
+        return $scrub ? $this->exportAnonymized($live, $onMessage) : $this->exportRaw($live);
+    }
+
+    /**
+     * Dumps the live database directly, without anonymization. No temporary database is needed
+     * (and thus no CREATE privilege), because the live data is only read, never modified.
+     */
+    private function exportRaw(DatabaseConnection $live): string
+    {
+        $artifactFile = $this->storageDirectory() . '/tmp-' . bin2hex(random_bytes(8)) . '.sql';
+        try {
+            $this->dumpLiveToFile($live, $artifactFile);
+
+            return $artifactFile;
+        } catch (\Throwable $exception) {
+            @unlink($artifactFile);
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * @param callable(string): void|null $onMessage
+     */
+    private function exportAnonymized(DatabaseConnection $live, ?callable $onMessage): string
+    {
         $tempName = $this->temporaryDatabaseName($live->dbname);
         $temp = $live->withDbname($tempName);
 
@@ -74,7 +103,7 @@ final class DatabaseExportService
         $connectionName = null;
         try {
             // 1. Copy live -> temp (schema of every table, data of every table except the excluded ones).
-            $this->dumpLiveToCopyFile($live, $copyFile);
+            $this->dumpLiveToFile($live, $copyFile);
             $this->databaseDumpService->importLocalFromFile($temp, $copyFile);
 
             // 2. Anonymize the temp database only. Never the live/DEFAULT connection.
@@ -110,19 +139,19 @@ final class DatabaseExportService
     }
 
     /**
-     * Copies the live database into the temporary one: pass 1 dumps the schema of every table,
-     * pass 2 dumps data for every table except the excluded ones. Excluded-table DATA therefore
-     * never leaves the live database.
+     * Dumps the live database to $targetFile: pass 1 dumps the schema of every table, pass 2 dumps
+     * data for every table except the excluded ones. Excluded-table DATA therefore never leaves the
+     * live database. Used both to seed the temp copy (anonymized path) and as the raw artifact.
      */
-    private function dumpLiveToCopyFile(DatabaseConnection $live, string $copyFile): void
+    private function dumpLiveToFile(DatabaseConnection $live, string $targetFile): void
     {
-        $this->dumpDatabaseToFile($live, [...self::DUMP_FLAGS, '--no-data'], $copyFile, false);
+        $this->dumpDatabaseToFile($live, [...self::DUMP_FLAGS, '--no-data'], $targetFile, false);
 
         $dataFlags = [...self::DUMP_FLAGS, '--no-create-info', '--single-transaction', '--quick'];
         foreach ($this->excludedTables() as $table) {
             $dataFlags[] = '--ignore-table=' . $live->dbname . '.' . $table;
         }
-        $this->dumpDatabaseToFile($live, $dataFlags, $copyFile, true);
+        $this->dumpDatabaseToFile($live, $dataFlags, $targetFile, true);
     }
 
     /**

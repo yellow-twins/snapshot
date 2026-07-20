@@ -41,7 +41,7 @@ final class DatabaseExportServiceTest extends FunctionalTestCase
         $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
         $connection->insert('fe_users', ['uid' => 1, 'pid' => 0, 'username' => 'john.doe', 'email' => 'john@real-domain.com', 'name' => 'John Doe']);
 
-        $sqlPath = $this->createService()->exportAnonymized();
+        $sqlPath = $this->createService()->export();
 
         try {
             // 1. The critical guarantee: the live database is untouched.
@@ -58,6 +58,31 @@ final class DatabaseExportServiceTest extends FunctionalTestCase
             self::assertStringNotContainsString('john.doe', $sql);
 
             // 3. No temporary working database is left behind.
+            $databases = $connection->executeQuery('SHOW DATABASES')->fetchFirstColumn();
+            foreach ($databases as $database) {
+                $name = is_scalar($database) ? (string)$database : '';
+                self::assertStringNotContainsString('_snap_', $name);
+            }
+        } finally {
+            @unlink($sqlPath);
+        }
+    }
+
+    #[Test]
+    public function rawExportKeepsDataUnanonymized(): void
+    {
+        $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
+        $connection->insert('fe_users', ['uid' => 1, 'pid' => 0, 'username' => 'john.doe', 'email' => 'john@real-domain.com', 'name' => 'John Doe']);
+
+        $sqlPath = $this->createService()->export(false);
+
+        try {
+            // The raw export deliberately preserves the real data (for local debugging).
+            $sql = (string)file_get_contents($sqlPath);
+            self::assertStringContainsString('john@real-domain.com', $sql);
+            self::assertStringNotContainsString('user1@example.invalid', $sql);
+
+            // A raw export never creates a temporary database (it reads the live DB directly).
             $databases = $connection->executeQuery('SHOW DATABASES')->fetchFirstColumn();
             foreach ($databases as $database) {
                 $name = is_scalar($database) ? (string)$database : '';

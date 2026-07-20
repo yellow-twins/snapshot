@@ -82,19 +82,12 @@ final class SnapshotModuleController
             ];
         }
         if (in_array('db', $sources, true)) {
-            try {
-                $sqlPath = $this->databaseExportService->exportAnonymized();
-                $token = $this->downloadTokenService->issue($sqlPath, 'database.sql', self::TOKEN_TTL_SECONDS, $now);
-                $artifacts[] = [
-                    'name' => 'Database (anonymized)',
-                    'type' => 'SQL',
-                    'size' => $this->byteFormatter->format($token->byteSize),
-                    'url' => (string)$this->uriBuilder->buildUriFromRoute('tools_snapshot', ['action' => 'download', 'dl' => $token->token]),
-                ];
-            } catch (DatabaseExportException $exception) {
-                $notes[] = $exception->getMessage();
-                $this->auditLogger->record('db-export-failed', ['reason' => $exception->getMessage()]);
-            }
+            $this->addDatabaseArtifact($artifacts, $notes, true, 'Database (anonymized)', 'SQL', 'database.sql', $now);
+        }
+        // Raw (un-anonymized) export is only ever offered when the environment allows it, and the
+        // permission is re-checked here so a crafted POST cannot bypass the missing card.
+        if (in_array('db_raw', $sources, true) && $this->exportGuard->allowsUnscrubbedExport()) {
+            $this->addDatabaseArtifact($artifacts, $notes, false, 'Database (RAW — contains personal data)', 'RAW', 'database-raw.sql', $now);
         }
 
         $this->auditLogger->record('prepared', ['sources' => $sources, 'artifacts' => count($artifacts)]);
@@ -114,6 +107,32 @@ final class SnapshotModuleController
             'flash' => $flash,
             'expirySeconds' => self::TOKEN_TTL_SECONDS,
         ]);
+    }
+
+    /**
+     * Runs a database export and appends its download artifact, or a note on failure.
+     *
+     * @param list<array{name: string, type: string, size: string, url: string}> $artifacts
+     * @param list<string>                                                        $notes
+     */
+    private function addDatabaseArtifact(array &$artifacts, array &$notes, bool $scrub, string $name, string $type, string $downloadName, int $now): void
+    {
+        try {
+            $sqlPath = $this->databaseExportService->export($scrub);
+            $token = $this->downloadTokenService->issue($sqlPath, $downloadName, self::TOKEN_TTL_SECONDS, $now);
+            $artifacts[] = [
+                'name' => $name,
+                'type' => $type,
+                'size' => $this->byteFormatter->format($token->byteSize),
+                'url' => (string)$this->uriBuilder->buildUriFromRoute('tools_snapshot', ['action' => 'download', 'dl' => $token->token]),
+            ];
+            if (!$scrub) {
+                $this->auditLogger->record('raw-export', ['name' => $downloadName]);
+            }
+        } catch (DatabaseExportException $exception) {
+            $notes[] = $exception->getMessage();
+            $this->auditLogger->record('db-export-failed', ['reason' => $exception->getMessage()]);
+        }
     }
 
     private function download(ServerRequestInterface $request): ResponseInterface
@@ -158,7 +177,10 @@ final class SnapshotModuleController
 
         $view = $this->moduleTemplateFactory->create($request);
         $view->setTitle('Snapshot');
-        $view->assignMultiple($data + ['prepareUrl' => (string)$this->uriBuilder->buildUriFromRoute('tools_snapshot', ['action' => 'prepare'])]);
+        $view->assignMultiple($data + [
+            'prepareUrl' => (string)$this->uriBuilder->buildUriFromRoute('tools_snapshot', ['action' => 'prepare']),
+            'rawAllowed' => $this->exportGuard->allowsUnscrubbedExport(),
+        ]);
 
         return $view->renderResponse('SnapshotModule');
     }
@@ -186,7 +208,7 @@ final class SnapshotModuleController
 
         $result = [];
         foreach ($sources as $source) {
-            if ($source === 'db' || $source === 'files') {
+            if ($source === 'db' || $source === 'db_raw' || $source === 'files') {
                 $result[] = $source;
             }
         }
