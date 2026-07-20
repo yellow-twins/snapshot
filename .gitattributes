@@ -10,6 +10,7 @@
 /psalm.xml           export-ignore
 /rector.php          export-ignore
 /CONTRIBUTING.md     export-ignore
+/SECURITY.md         export-ignore
 /ROADMAP.md          export-ignore
 /CONCEPT.md          export-ignore
 /design_handoff_snapshot_download/ export-ignore
