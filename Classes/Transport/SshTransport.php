@@ -19,7 +19,7 @@ final class SshTransport implements TransportInterface
         return $environment->transport === 'ssh';
     }
 
-    public function run(EnvironmentConfig $environment, string $remoteCommand, ?string $outputFile = null, ?int $timeout = 3600): CommandResult
+    public function run(EnvironmentConfig $environment, string $remoteCommand, ?string $outputFile = null, ?int $timeout = 3600, ?callable $onProgress = null): CommandResult
     {
         $command = $this->baseSshCommand($environment);
         $command[] = $remoteCommand;
@@ -39,12 +39,18 @@ final class SshTransport implements TransportInterface
         }
 
         $stderr = '';
+        $written = 0;
         try {
-            $process->run(static function (string $type, string $buffer) use ($handle, &$stderr): void {
-                if ($type === Process::OUT) {
-                    fwrite($handle, $buffer);
-                } else {
+            $process->run(static function (string $type, string $buffer) use ($handle, &$stderr, &$written, $onProgress): void {
+                if ($type !== Process::OUT) {
                     $stderr .= $buffer;
+
+                    return;
+                }
+                fwrite($handle, $buffer);
+                if ($onProgress !== null) {
+                    $written += strlen($buffer);
+                    $onProgress($written);
                 }
             });
         } finally {

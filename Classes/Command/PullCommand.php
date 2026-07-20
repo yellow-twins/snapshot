@@ -158,9 +158,26 @@ final class PullCommand extends Command
             return;
         }
 
-        $this->scrubbingService->scrub($overrides, static function (string $message) use ($io): void {
-            $io->writeln('  ' . $message);
-        });
+        /** @var ProgressBar|null $progressBar */
+        $progressBar = null;
+        $this->scrubbingService->scrub(
+            $overrides,
+            static function (string $message) use (&$progressBar): void {
+                $progressBar?->setMessage($message);
+            },
+            function (int $done, int $total) use ($io, &$progressBar): void {
+                if ($total === 0) {
+                    return;
+                }
+                $progressBar ??= $this->createStepBar($io, $total, 'Anonymizing');
+                $progressBar->setProgress($done);
+            },
+        );
+
+        if ($progressBar !== null) {
+            $progressBar->finish();
+            $io->newLine(2);
+        }
         $io->writeln('<info>Anonymization complete.</info>');
     }
 
@@ -229,15 +246,20 @@ final class PullCommand extends Command
         $dumpFile = $this->createTempFile();
         try {
             if ($useConsole) {
-                $io->writeln('Dumping remote database via typo3_console…');
-                $this->databaseDumpService->dumpRemoteViaConsole($environment, $excludePatterns, $dumpFile);
+                $dumpBar = $this->createByteBar($io, 'Dumping database (typo3_console)');
+                $this->databaseDumpService->dumpRemoteViaConsole($environment, $excludePatterns, $dumpFile, $this->reportBytes($dumpBar));
             } else {
                 $remote = $this->connectionResolver->resolveRemote($environment, $this->transport);
-                $io->writeln('Dumping remote database via mysqldump…');
-                $this->databaseDumpService->dumpRemoteToFile($environment, $remote, $excludePatterns, $dumpFile);
+                $dumpBar = $this->createByteBar($io, 'Dumping database (mysqldump)');
+                $this->databaseDumpService->dumpRemoteToFile($environment, $remote, $excludePatterns, $dumpFile, $this->reportBytes($dumpBar));
             }
-            $io->writeln('Importing into local database via typo3_console…');
-            $this->databaseDumpService->importLocalViaConsole($dumpFile);
+            $this->finishBar($io, $dumpBar);
+
+            $importBar = $this->createPercentBar($io, 'Importing database  ');
+            $this->databaseDumpService->importLocalViaConsole($dumpFile, static function (int $percent) use ($importBar): void {
+                $importBar->setProgress($percent);
+            });
+            $this->finishBar($io, $importBar);
         } finally {
             @unlink($dumpFile);
         }
@@ -284,11 +306,64 @@ final class PullCommand extends Command
 
     private function createFileProgressBar(SymfonyStyle $io): ProgressBar
     {
+        return $this->createPercentBar($io, 'Transferring fileadmin');
+    }
+
+    /**
+     * A determinate 0-100% bar (elapsed time, no throughput). Used for transfers whose total is known.
+     */
+    private function createPercentBar(SymfonyStyle $io, string $label): ProgressBar
+    {
         $progressBar = $io->createProgressBar(100);
-        $progressBar->setFormat(' Transferring fileadmin  %percent:3s%%  [%bar%]  %elapsed:6s%');
+        $progressBar->setFormat(' ' . $label . '  %percent:3s%%  [%bar%]  %elapsed:6s%');
         $progressBar->start();
 
         return $progressBar;
+    }
+
+    /**
+     * An indeterminate bar that shows a running, human-readable byte count. Used for the database
+     * dump, whose final SQL size is not known up front (so a percentage would be misleading).
+     */
+    private function createByteBar(SymfonyStyle $io, string $label): ProgressBar
+    {
+        $progressBar = $io->createProgressBar();
+        $progressBar->setFormat(' ' . $label . '  %message%  (%elapsed:6s%)');
+        $progressBar->setMessage('0 B');
+        $progressBar->start();
+
+        return $progressBar;
+    }
+
+    /**
+     * A determinate bar over a known number of steps, with the current item shown as the message.
+     */
+    private function createStepBar(SymfonyStyle $io, int $max, string $label): ProgressBar
+    {
+        $progressBar = $io->createProgressBar($max);
+        $progressBar->setFormat(' ' . $label . '  %current%/%max%  [%bar%]  %message%');
+        $progressBar->setMessage('');
+        $progressBar->start();
+
+        return $progressBar;
+    }
+
+    /**
+     * @return callable(int): void Feeds a running byte count into a byte bar as the dump streams in.
+     */
+    private function reportBytes(ProgressBar $progressBar): callable
+    {
+        return function (int $bytes) use ($progressBar): void {
+            $progressBar->setMessage($this->byteFormatter->format($bytes));
+            // Advance the internal step so the (throttled) redraw picks up the new message.
+            $progressBar->setProgress($bytes);
+        };
+    }
+
+    private function finishBar(SymfonyStyle $io, ProgressBar $progressBar): void
+    {
+        $progressBar->finish();
+        $io->newLine(2);
     }
 
     private function createTempFile(): string

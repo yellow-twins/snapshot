@@ -39,6 +39,7 @@ final class DatabaseDumpService
         DatabaseConnection $remote,
         array $excludePatterns,
         string $targetFile,
+        ?callable $onProgress = null,
     ): void {
         $tables = $this->listRemoteTables($environment, $remote);
         $excluded = $this->tablePatternMatcher->match($tables, $excludePatterns);
@@ -51,7 +52,7 @@ final class DatabaseDumpService
         }
         $data = $this->clientCommand('mysqldump', $remote, $dataArgs, true);
 
-        $result = $this->transport->run($environment, $structure . ' && ' . $data, $targetFile, null);
+        $result = $this->transport->run($environment, $structure . ' && ' . $data, $targetFile, null, $onProgress);
         if (!$result->isSuccessful()) {
             @unlink($targetFile);
             throw new SnapshotException(
@@ -80,7 +81,7 @@ final class DatabaseDumpService
      *
      * @param list<string> $excludePatterns Table name / wildcard patterns passed as -e options
      */
-    public function dumpRemoteViaConsole(EnvironmentConfig $environment, array $excludePatterns, string $targetFile): void
+    public function dumpRemoteViaConsole(EnvironmentConfig $environment, array $excludePatterns, string $targetFile, ?callable $onProgress = null): void
     {
         $parts = [escapeshellarg($environment->remoteTypo3Binary()), 'database:export', '-c', 'Default'];
         foreach ($excludePatterns as $pattern) {
@@ -88,7 +89,7 @@ final class DatabaseDumpService
             $parts[] = escapeshellarg($pattern);
         }
 
-        $result = $this->transport->run($environment, implode(' ', $parts), $targetFile, null);
+        $result = $this->transport->run($environment, implode(' ', $parts), $targetFile, null, $onProgress);
         if (!$result->isSuccessful()) {
             @unlink($targetFile);
             throw new SnapshotException(
@@ -132,7 +133,10 @@ final class DatabaseDumpService
      * Imports a dump into the local database via typo3_console, which uses TYPO3's own
      * (already bootstrapped) connection — no need to reconstruct client credentials.
      */
-    public function importLocalViaConsole(string $file): void
+    /**
+     * @param callable(int): void|null $onProgress Receives the percentage (0-100) of the dump fed to the import
+     */
+    public function importLocalViaConsole(string $file, ?callable $onProgress = null): void
     {
         $binary = Environment::getProjectPath() . '/vendor/bin/typo3';
         if (!is_file($binary)) {
@@ -142,14 +146,14 @@ final class DatabaseDumpService
             );
         }
 
-        $handle = @fopen($file, 'rb');
-        if ($handle === false) {
+        $totalBytes = @filesize($file);
+        if ($totalBytes === false) {
             throw new SnapshotException(sprintf('Unable to read dump file "%s".', $file), 1_752_900_541);
         }
 
         $process = new Process([PHP_BINARY, $binary, 'database:import']);
         $process->setTimeout(null);
-        $process->setInput($handle);
+        $process->setInput($this->streamDump($file, $totalBytes, $onProgress));
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -157,6 +161,40 @@ final class DatabaseDumpService
                 sprintf('Local database import failed: %s', $this->firstLine($process->getErrorOutput(), 'exit code ' . (string)$process->getExitCode())),
                 1_752_900_542,
             );
+        }
+    }
+
+    /**
+     * Feeds the dump file to the import process in chunks so the caller can report progress
+     * as the import consumes stdin.
+     *
+     * @param callable(int): void|null $onProgress
+     *
+     * @return \Generator<string>
+     */
+    private function streamDump(string $file, int $totalBytes, ?callable $onProgress): \Generator
+    {
+        $handle = fopen($file, 'rb');
+        if ($handle === false) {
+            throw new SnapshotException(sprintf('Unable to read dump file "%s".', $file), 1_752_900_543);
+        }
+
+        try {
+            $read = 0;
+            while (!feof($handle)) {
+                $chunk = fread($handle, 262_144);
+                if ($chunk === false || $chunk === '') {
+                    break;
+                }
+                $read += strlen($chunk);
+                if ($onProgress !== null && $totalBytes > 0) {
+                    $onProgress((int)min(100, intdiv($read * 100, $totalBytes)));
+                }
+
+                yield $chunk;
+            }
+        } finally {
+            fclose($handle);
         }
     }
 

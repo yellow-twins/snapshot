@@ -21,8 +21,9 @@ interface TransportInterface
      * @param string      $remoteCommand A shell-ready command string, interpreted by the remote shell
      * @param string|null $outputFile    If set, stdout is streamed to this local file instead of captured
      * @param int|null    $timeout       Seconds; null disables the timeout (for long dumps)
+     * @param callable(int): void|null $onProgress Receives the running byte count streamed to $outputFile
      */
-    public function run(EnvironmentConfig $environment, string $remoteCommand, ?string $outputFile = null, ?int $timeout = 3600): CommandResult;
+    public function run(EnvironmentConfig $environment, string $remoteCommand, ?string $outputFile = null, ?int $timeout = 3600, ?callable $onProgress = null): CommandResult;
 
     /**
      * Human-readable connection summary for diagnostics, e.g. "deploy@live.example.com:22".
