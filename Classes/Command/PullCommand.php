@@ -87,7 +87,7 @@ final class PullCommand extends Command
         }
 
         if (!$dryRun && !$yes) {
-            $io->warning('This overwrites your local ' . $this->scopeLabel($pullDatabase, $pullFiles) . '.');
+            $io->warning($this->overwriteWarning($pullDatabase, $pullFiles));
             if (!$io->confirm('Continue?', false)) {
                 $io->writeln('Aborted.');
 
@@ -188,13 +188,19 @@ final class PullCommand extends Command
         return [$db, $files];
     }
 
-    private function scopeLabel(bool $db, bool $files): string
+    private function overwriteWarning(bool $db, bool $files): string
     {
-        return match (true) {
-            $db && $files => 'database and fileadmin',
-            $db => 'database',
-            default => 'fileadmin',
-        };
+        $parts = [];
+        if ($db) {
+            $parts[] = 'replace your local database';
+        }
+        if ($files) {
+            // rsync runs without --delete: remote files overwrite matching local ones and new
+            // files are added, but local-only files are kept (not a destructive full mirror).
+            $parts[] = 'sync files into your local fileadmin (remote overwrites matching files; local-only files are kept)';
+        }
+
+        return 'This will ' . implode(' and ', $parts) . '.';
     }
 
     /**
