@@ -3,7 +3,7 @@
     xmlns="https://www.phpdoc.org/guides"
     links-are-relative="true"
 >
-    <project title="Snapshot" release="1.0" version="1.0" copyright="Yellow Twins" />
+    <project title="Snapshot" release="0.9.0" version="0.9" copyright="Yellow Twins" />
     <extension
         class="\T3Docs\Typo3DocsTheme\DependencyInjection\Typo3DocsThemeExtension"
         edit-on-github="yellow-twins/snapshot"

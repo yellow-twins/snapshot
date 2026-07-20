@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-20
+
+First public beta.
+
 ### Added
 - Backend **database self-export** with server-side anonymization (M5): copies the live database
   into a throwaway temporary database, scrubs that copy, dumps it, and drops it — the live database

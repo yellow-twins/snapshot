@@ -21,8 +21,10 @@ refreshing a stale local database.
 
 ## Status
 
-🚧 **Alpha / in development.** Targets TYPO3 **v14** (primary) and **v13** LTS, PHP ≥ 8.2.
-See [ROADMAP.md](./ROADMAP.md) and [CONCEPT.md](./CONCEPT.md).
+**Public beta (0.9.0).** Targets TYPO3 **v14** (primary) and **v13** LTS, PHP ≥ 8.2. The CLI pull
+and the backend module (database + fileadmin, anonymized) are feature-complete and tested; the
+remaining pre-1.0 work is community feedback plus notification mail and step-up re-auth for the
+backend module. See [ROADMAP.md](./ROADMAP.md).
 
 ## Requirements
 
