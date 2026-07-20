@@ -12,19 +12,29 @@ Snapshot
                 `Creative Commons BY 4.0 <https://creativecommons.org/licenses/by/4.0/>`__
                 license.
 
-Developer provisioning for TYPO3: pull database and fileadmin from any environment to your
-local machine. **Snapshot is not a backup tool** — no scheduler, no off-site storage, no
-restore-to-production. It exists to get real data onto a developer machine fast.
+Developer provisioning for TYPO3: pull the database and fileadmin from any environment onto your
+local machine, fast. **Snapshot is not a backup tool** — no scheduler, no off-site storage, no
+restore-to-production. It exists to get real data onto a developer machine in minutes: onboarding a
+new developer, or refreshing a stale local database.
 
-.. note::
+Two ways in, one job:
 
-   🚧 This extension is in early development. Documentation will grow alongside the
-   milestones described in ``ROADMAP.md``.
+- **CLI over SSH** — the primary path. Installed as a ``require-dev`` dependency and run from your
+  own machine, so production is never touched. See :ref:`cli-usage`.
+- **Backend module** — for the "I have backend admin but no SSH" case, hardened by defence in
+  depth. See :ref:`backend-module`.
 
-Overview
-========
+Pulled and exported data is **GDPR-anonymized by default** (see :ref:`scrubbing`).
 
-- **CLI over SSH** — installed as a dev dependency; production is never touched.
-- **Backend module** — for the "backend admin, no SSH" case, behind a 9-layer security model.
-- **GDPR-safe by default** — pulled data is anonymized before it lands locally.
-- **DDEV-native** — ships ``ddev snapshot-pull`` commands and a DDEV add-on.
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   Introduction/Index
+   Installation/Index
+   CliUsage/Index
+   Configuration/Index
+   BackendModule/Index
+   Scrubbing/Index
+   Ddev/Index
+   Troubleshooting/Index

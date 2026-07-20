@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<guides
+    xmlns="https://www.phpdoc.org/guides"
+    links-are-relative="true"
+>
+    <project title="Snapshot" release="1.0" version="1.0" copyright="Yellow Twins" />
+    <extension
+        class="\T3Docs\Typo3DocsTheme\DependencyInjection\Typo3DocsThemeExtension"
+        edit-on-github="yellow-twins/snapshot"
+        edit-on-github-branch="main"
+        interlink-shortcode="snapshot"
+        project-home="https://github.com/yellow-twins/snapshot"
+        project-repository="https://github.com/yellow-twins/snapshot"
+        project-issues="https://github.com/yellow-twins/snapshot/issues"
+    />
+</guides>
