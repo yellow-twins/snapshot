@@ -1,40 +1,54 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
 
 <style>
-.snapshot-module { --accent: #1a1c1e; font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1a1c1e; max-width: 900px; margin: 0 auto; padding: 8px 4px 56px; }
-.snapshot-module h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 12px 0 6px; }
-.snapshot-module .intro { color: #6c7178; max-width: 640px; margin: 0 0 22px; }
-.snapshot-module .protections { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #e0e2e5; border-radius: 9px; overflow: hidden; margin-bottom: 26px; }
-.snapshot-module .protection { background: #fbfbfc; padding: 12px 14px; }
-.snapshot-module .protection .t { display: flex; align-items: center; gap: 7px; font-weight: 600; color: #1e7a34; }
-.snapshot-module .protection .s { color: #6c7178; font-size: 12.5px; margin-top: 2px; }
-.snapshot-module .section-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #8a8f95; margin: 0 0 10px; }
+.snapshot-module {
+    --accent: #ff8700;
+    --txt: var(--typo3-text-color-base, #1a1a1a);
+    --muted: var(--typo3-text-color-variant, #666);
+    --surface: var(--typo3-component-bg, #fff);
+    --surface-2: var(--typo3-surface-container-high, #efefef);
+    --border: var(--typo3-component-border-color, #d7d7d7);
+    color: var(--txt);
+    max-width: 900px; margin: 0 auto; padding: 8px 4px 56px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Source Sans 3", sans-serif;
+}
+.snapshot-module h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 12px 0 6px; color: var(--txt); }
+.snapshot-module .intro { color: var(--muted); max-width: 640px; margin: 0 0 22px; }
+.snapshot-module .protections { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 26px; }
+.snapshot-module .protection { background: var(--surface); padding: 12px 14px; }
+.snapshot-module .protection .t { display: flex; align-items: center; gap: 7px; font-weight: 600; color: #1e9e46; }
+.snapshot-module .protection .t::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1e9e46; }
+.snapshot-module .protection .s { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.snapshot-module .section-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
 .snapshot-module .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
-.snapshot-module .card { padding: 18px; background: #fff; border: 2px solid #e0e2e5; border-radius: 10px; }
-.snapshot-module .card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.snapshot-module .tile { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
-.snapshot-module .tile.db { background: #eef4fb; color: #0b71b8; }
-.snapshot-module .tile.fa { background: #fff6ec; color: #e6790a; }
+.snapshot-module .card { position: relative; padding: 18px; background: var(--surface); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; user-select: none; }
+.snapshot-module .card.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.snapshot-module .card .check { position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; opacity: 0; transition: opacity .15s; }
+.snapshot-module .card.selected .check { opacity: 1; }
+.snapshot-module .tile { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; margin-bottom: 12px; }
+.snapshot-module .tile.db { background: #1f4f7a; color: #cfe6ff; }
+.snapshot-module .tile.fa { background: #7a4a12; color: #ffd9a8; }
 .snapshot-module .card .title { font-weight: 700; font-size: 16px; }
-.snapshot-module .card .size { color: #6c7178; font-size: 13px; }
+.snapshot-module .card .size { color: var(--muted); font-size: 13px; }
 .snapshot-module .chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-.snapshot-module .chip { font-size: 11.5px; color: #565b61; background: #f0f1f3; border-radius: 20px; padding: 3px 10px; }
-.snapshot-module .actionbar { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e0e2e5; border-radius: 10px; padding: 16px 18px; }
+.snapshot-module .chip { font-size: 11.5px; color: var(--muted); background: var(--surface-2); border-radius: 20px; padding: 3px 10px; }
+.snapshot-module .actionbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
 .snapshot-module .actionbar .summary { font-weight: 600; }
-.snapshot-module .actionbar .sub { color: #6c7178; font-size: 12.5px; margin-top: 2px; }
+.snapshot-module .actionbar .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
 .snapshot-module .btn { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 10px 20px; font-weight: 600; font-size: 14px; cursor: pointer; }
-.snapshot-module .btn[disabled] { opacity: .45; cursor: not-allowed; }
-.snapshot-module .blocked { background: #fdecea; border: 1px solid #f3c0ba; border-radius: 10px; padding: 18px 20px; }
-.snapshot-module .blocked h2 { font-size: 16px; font-weight: 700; color: #8a2a1e; margin: 0 0 8px; }
-.snapshot-module .blocked ul { margin: 0; padding-left: 18px; color: #6b2018; }
-.snapshot-module .blocked li { margin: 4px 0; }
-.snapshot-module .note { color: #91959b; font-size: 12px; margin-top: 14px; }
+.snapshot-module .btn:disabled { opacity: .45; cursor: not-allowed; }
+.snapshot-module .callout { border-radius: 10px; padding: 16px 20px; }
+.snapshot-module .callout.blocked { background: color-mix(in srgb, #d9342b 14%, var(--surface)); border: 1px solid color-mix(in srgb, #d9342b 40%, var(--surface)); }
+.snapshot-module .callout.blocked h2 { font-size: 16px; font-weight: 700; color: #e05a4f; margin: 0 0 8px; }
+.snapshot-module .callout.blocked ul { margin: 0; padding-left: 18px; }
+.snapshot-module .callout.blocked li { margin: 4px 0; }
+.snapshot-module .note { color: var(--muted); font-size: 12px; margin-top: 14px; }
 </style>
 
 <div class="snapshot-module">
     <h1>Download a snapshot</h1>
-    <p class="intro">Pull a fresh copy of this environment's database and fileadmin to your local
-        machine. Choose one, the other, or both.</p>
+    <p class="intro">Prepare a copy of this environment's database and fileadmin to download to your
+        local machine. Choose one, the other, or both.</p>
 
     <div class="protections">
         <div class="protection"><div class="t">GDPR anonymized</div><div class="s">personal data scrubbed</div></div>
@@ -45,19 +59,17 @@
     <f:if condition="{allowed}">
         <f:then>
             <p class="section-label">Select what to include</p>
-            <div class="cards">
-                <div class="card">
-                    <div class="top">
-                        <div class="tile db">DB</div>
-                    </div>
+            <div class="cards" id="snapshot-cards">
+                <div class="card selected" data-source="db">
+                    <div class="check">&#10003;</div>
+                    <div class="tile db">DB</div>
                     <div class="title">Database</div>
                     <div class="size">compressed export</div>
                     <div class="chips"><span class="chip">database:export</span><span class="chip">cache · logs · sessions excluded</span></div>
                 </div>
-                <div class="card">
-                    <div class="top">
-                        <div class="tile fa">FA</div>
-                    </div>
+                <div class="card selected" data-source="files">
+                    <div class="check">&#10003;</div>
+                    <div class="tile fa">FA</div>
                     <div class="title">Fileadmin</div>
                     <div class="size">archive</div>
                     <div class="chips"><span class="chip">rsync</span><span class="chip">_processed_ · _temp_ excluded</span></div>
@@ -65,15 +77,15 @@
             </div>
             <div class="actionbar">
                 <div>
-                    <div class="summary">Database + Fileadmin</div>
-                    <div class="sub">Prepare a secured, single-use download</div>
+                    <div class="summary" id="snapshot-summary">Database + Fileadmin</div>
+                    <div class="sub" id="snapshot-sub">Prepare a secured, single-use download</div>
                 </div>
-                <button type="button" class="btn" disabled="disabled">Prepare download</button>
+                <button type="button" class="btn" id="snapshot-prepare">Prepare download</button>
             </div>
-            <p class="note">The prepare/export/download flow with single-use expiring tokens is wired in the next step.</p>
+            <p class="note">The prepare/export step with single-use expiring download tokens is wired next.</p>
         </f:then>
         <f:else>
-            <div class="blocked">
+            <div class="callout blocked">
                 <h2>Export is not available</h2>
                 <ul>
                     <f:for each="{problems}" as="problem">

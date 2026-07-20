@@ -7,6 +7,8 @@ namespace YellowTwins\Snapshot\Backend\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
+use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YellowTwins\Snapshot\Backend\ExportGuard;
 
 /**
@@ -25,6 +27,11 @@ final class SnapshotModuleController
     public function handleRequest(ServerRequestInterface $request): ResponseInterface
     {
         $guard = $this->exportGuard->evaluate($request);
+
+        if ($guard->allowed) {
+            GeneralUtility::makeInstance(PageRenderer::class)
+                ->loadJavaScriptModule('@yellow-twins/snapshot/snapshot-module.js');
+        }
 
         $view = $this->moduleTemplateFactory->create($request);
         $view->setTitle('Snapshot');
