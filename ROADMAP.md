@@ -87,19 +87,26 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
-## M5 — Pillar A: hardened backend module
+## M5 — Pillar A: hardened backend module 🚧
 
 *Goal: the "I have backend admin but no SSH" path, with the full 9-layer security model. This is the answer to the ns_backup advisories.*
 
-- [ ] Backend module (`Configuration/Backend/Modules.php`) + controller + Fluid templates + XLIFF
-- [ ] `ExportGuard` — dedicated permission, IP allowlist (`.env`), MFA required, step-up re-auth, kill-switch
-- [ ] `AuditLogger` — sys_log + notification mail on every export
-- [ ] Single-use, expiring, non-guessable download token (fixes the predictable-resource-location flaw)
-- [ ] Async export for large sites (Scheduler / Messenger), streamed archive
-- [ ] Reuse M3 scrubbing on the export path
-- [ ] Tests for the security guards (the highest-risk code)
+Slice 1 (done):
+- [x] Backend module (`Configuration/Backend/Modules.php`, tools area, admin-only) + icon + XLIFF labels
+- [x] Controller + Fluid template (idle screen from the design + security-blocked state)
+- [x] `ExportGuard` — kill-switch (disabled by default), IP allowlist (env), MFA required. Safe by default.
 
-**Done when:** a permitted admin behind the IP allowlist, with MFA + step-up, can export and download once via an expiring token; every attempt is audited and mailed; the feature is off unless explicitly enabled.
+Slice 2 (next):
+- [ ] Prepare/export flow: self-export of THIS instance (local DB via database:export + scrub + fileadmin archive)
+- [ ] Single-use, expiring, non-guessable download token (fixes the predictable-resource-location flaw)
+- [ ] `AuditLogger` — sys_log + notification mail on every export
+- [ ] Step-up re-auth before export; async export for large sites
+- [ ] Backend UI additive-only scrub-table selection (never weaken the baseline)
+- [ ] Tests for the security guards (highest-risk code)
+
+**Slice 1 verified structurally** (gates green, module/icon config parses). Visual backend
+verification pending (browser). **Note:** the backend export is a *self-export* of the current
+instance — distinct from the pull services (remote → local).
 
 ---
 

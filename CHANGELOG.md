@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Backend module, first slice (M5): admin-only "Snapshot" tools module with a security gate
+  (`ExportGuard` — kill-switch disabled by default, optional IP allowlist, mandatory active MFA)
+  and the design's entry screen. The prepare/export/download flow with single-use tokens follows.
 - DDEV add-on (M4): `ddev add-on get yellow-twins/snapshot` installs `ddev snapshot-pull`,
   `ddev snapshot-doctor`, and `ddev snapshot-list-envs` web commands.
 - Transfer-size preview before a pull: fileadmin size via `rsync --stats`, database size via

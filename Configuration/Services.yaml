@@ -18,3 +18,7 @@ services:
   # v1 has a single transport and file source; bind the interfaces to them.
   YellowTwins\Snapshot\Transport\TransportInterface: '@YellowTwins\Snapshot\Transport\SshTransport'
   YellowTwins\Snapshot\FileSource\FileSourceInterface: '@YellowTwins\Snapshot\FileSource\RsyncFileSource'
+
+  # Backend module controller must be public so the module route can resolve it.
+  YellowTwins\Snapshot\Backend\Controller\SnapshotModuleController:
+    public: true
