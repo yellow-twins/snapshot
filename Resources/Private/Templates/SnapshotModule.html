@@ -69,6 +69,10 @@
         <div class="flash">{flash}</div>
     </f:if>
 
+    <f:if condition="{notes}">
+        <f:for each="{notes}" as="noteText"><p class="note">{noteText}</p></f:for>
+    </f:if>
+
     <f:switch expression="{phase}">
         <f:case value="blocked">
             <div class="callout blocked">
@@ -92,16 +96,13 @@
             </div>
             <f:for each="{artifacts}" as="artifact">
                 <div class="artifact">
-                    <div class="tile fa">ZIP</div>
+                    <div class="tile fa">{artifact.type}</div>
                     <div class="meta">
                         <div class="name">{artifact.name}</div>
                         <div class="sz">· {artifact.size}</div>
                     </div>
                     <a class="btn" href="{artifact.url}">Download</a>
                 </div>
-            </f:for>
-            <f:for each="{notes}" as="noteText">
-                <p class="note">{noteText}</p>
             </f:for>
             <p class="note"><a class="btn secondary" href="{f:be.uri(route: 'tools_snapshot')}">Start over</a></p>
         </f:case>
@@ -115,7 +116,7 @@
                         <div class="tile db">DB</div>
                         <div class="title">Database</div>
                         <div class="size">compressed export</div>
-                        <div class="chips"><span class="chip">database:export</span><span class="chip">cache · logs · sessions excluded</span></div>
+                        <div class="chips"><span class="chip">anonymized</span><span class="chip">cache · logs · sessions excluded</span></div>
                         <input type="checkbox" name="sources[]" value="db" checked="checked" hidden="hidden" />
                     </div>
                     <div class="card selected" data-source="files">
@@ -135,7 +136,7 @@
                     <button type="submit" class="btn" id="snapshot-prepare">Prepare download</button>
                 </div>
             </form>
-            <p class="note">Database export (anonymized server-side) is being wired next; fileadmin export is live.</p>
+            <p class="note">The database export is anonymized server-side (personal data is scrubbed); your live database is never modified.</p>
         </f:defaultCase>
     </f:switch>
 </div>

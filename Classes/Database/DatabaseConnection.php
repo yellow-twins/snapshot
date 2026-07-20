@@ -49,6 +49,22 @@ final readonly class DatabaseConnection
     }
 
     /**
+     * Returns a copy pointing at a different database on the same server (same host, port,
+     * credentials). Used to target a throwaway temporary database for the anonymized export.
+     */
+    public function withDbname(string $dbname): self
+    {
+        return new self(
+            host: $this->host,
+            port: $this->port,
+            dbname: $dbname,
+            user: $this->user,
+            password: $this->password,
+            unixSocket: $this->unixSocket,
+        );
+    }
+
+    /**
      * Connection flags for the mysql / mysqldump CLIs. The password is intentionally
      * omitted here and passed via the MYSQL_PWD environment variable instead.
      *

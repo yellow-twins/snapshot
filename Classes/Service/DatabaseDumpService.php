@@ -208,7 +208,9 @@ final class DatabaseDumpService
             throw new SnapshotException(sprintf('Unable to read dump file "%s".', $file), 1_752_900_510);
         }
 
-        $command = ['mysql', ...$local->clientArguments(), $local->dbname];
+        // --no-defaults ignores the invoking user's option files so MYSQL_PWD is not overridden
+        // by a stray ~/.my.cnf [client] password.
+        $command = ['mysql', '--no-defaults', ...$local->clientArguments(), $local->dbname];
         $process = new Process($command, null, ['MYSQL_PWD' => $local->password]);
         $process->setTimeout(null);
         $process->setInput($handle);

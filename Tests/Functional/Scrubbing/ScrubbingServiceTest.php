@@ -38,7 +38,7 @@ final class ScrubbingServiceTest extends FunctionalTestCase
         $connection->insert('fe_users', ['uid' => 1, 'pid' => 0, 'username' => 'john.doe', 'email' => 'john@real-domain.com', 'name' => 'John Doe']);
         $connection->insert('fe_users', ['uid' => 2, 'pid' => 0, 'username' => 'jane.roe', 'email' => 'jane@real-domain.com', 'name' => 'Jane Roe']);
 
-        $this->createService()->scrub([], static function (string $message): void {});
+        $this->createService()->scrub($connection, [], static function (string $message): void {});
 
         $rows = $connection->select(['uid', 'username', 'email', 'name'], 'fe_users', [], [], ['uid' => 'ASC'])->fetchAllAssociative();
 
@@ -55,7 +55,7 @@ final class ScrubbingServiceTest extends FunctionalTestCase
         $connection->insert('sys_log', ['details' => 'something happened']);
         self::assertGreaterThan(0, $connection->count('*', 'sys_log', []));
 
-        $this->createService()->scrub([], static function (string $message): void {});
+        $this->createService()->scrub($connection, [], static function (string $message): void {});
 
         self::assertSame(0, $connection->count('*', 'sys_log', []));
     }
@@ -66,13 +66,13 @@ final class ScrubbingServiceTest extends FunctionalTestCase
         $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
         $connection->insert('fe_users', ['uid' => 1, 'pid' => 0, 'username' => 'john.doe', 'email' => 'john@real-domain.com']);
 
-        $this->createService()->scrub(['fe_users' => ScrubRule::truncate()], static function (string $message): void {});
+        $this->createService()->scrub($connection, ['fe_users' => ScrubRule::truncate()], static function (string $message): void {});
 
         self::assertSame(0, $connection->count('*', 'fe_users', []));
     }
 
     private function createService(): ScrubbingService
     {
-        return new ScrubbingService($this->connectionPool, new ScrubExpressionBuilder());
+        return new ScrubbingService(new ScrubExpressionBuilder());
     }
 }

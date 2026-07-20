@@ -14,6 +14,8 @@ use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YellowTwins\Snapshot\Backend\AuditLogger;
 use YellowTwins\Snapshot\Backend\Download\DownloadTokenService;
+use YellowTwins\Snapshot\Backend\Export\DatabaseExportException;
+use YellowTwins\Snapshot\Backend\Export\DatabaseExportService;
 use YellowTwins\Snapshot\Backend\Export\FileadminArchiveService;
 use YellowTwins\Snapshot\Backend\ExportGuard;
 use YellowTwins\Snapshot\Util\ByteFormatter;
@@ -32,6 +34,7 @@ final class SnapshotModuleController
         private readonly ModuleTemplateFactory $moduleTemplateFactory,
         private readonly ExportGuard $exportGuard,
         private readonly FileadminArchiveService $fileadminArchiveService,
+        private readonly DatabaseExportService $databaseExportService,
         private readonly DownloadTokenService $downloadTokenService,
         private readonly AuditLogger $auditLogger,
         private readonly ByteFormatter $byteFormatter,
@@ -71,6 +74,7 @@ final class SnapshotModuleController
             $token = $this->downloadTokenService->issue($archivePath, 'fileadmin.zip', self::TOKEN_TTL_SECONDS, $now);
             $artifacts[] = [
                 'name' => 'Fileadmin archive',
+                'type' => 'ZIP',
                 'size' => $this->byteFormatter->format($token->byteSize),
                 // Note: the download-token parameter must NOT be named "token" — that collides
                 // with the backend route's CSRF token parameter.
@@ -78,16 +82,28 @@ final class SnapshotModuleController
             ];
         }
         if (in_array('db', $sources, true)) {
-            $notes[] = 'Database export is anonymized server-side and is being wired in the next release; your fileadmin archive is ready below.';
+            try {
+                $sqlPath = $this->databaseExportService->exportAnonymized();
+                $token = $this->downloadTokenService->issue($sqlPath, 'database.sql', self::TOKEN_TTL_SECONDS, $now);
+                $artifacts[] = [
+                    'name' => 'Database (anonymized)',
+                    'type' => 'SQL',
+                    'size' => $this->byteFormatter->format($token->byteSize),
+                    'url' => (string)$this->uriBuilder->buildUriFromRoute('tools_snapshot', ['action' => 'download', 'dl' => $token->token]),
+                ];
+            } catch (DatabaseExportException $exception) {
+                $notes[] = $exception->getMessage();
+                $this->auditLogger->record('db-export-failed', ['reason' => $exception->getMessage()]);
+            }
         }
 
         $this->auditLogger->record('prepared', ['sources' => $sources, 'artifacts' => count($artifacts)]);
 
-        // Database-only for now produces no artifact (DB export lands in the next release); bounce
-        // back to the selection screen with a clear explanation instead of silently doing nothing.
+        // If nothing could be produced (e.g. DB-only on a host without the CREATE privilege), bounce
+        // back to the selection screen; the notes above carry the reason.
         $flash = null;
         if ($artifacts === []) {
-            $flash = 'Database export (anonymized server-side) is being wired in the next release. Select Fileadmin to download a snapshot now.';
+            $flash = 'No snapshot could be prepared — see the notes above, or pick another source.';
         }
 
         return $this->render($request, [
@@ -121,7 +137,7 @@ final class SnapshotModuleController
             new Stream($filePath, 'rb'),
             200,
             [
-                'Content-Type' => 'application/zip',
+                'Content-Type' => 'application/octet-stream',
                 'Content-Disposition' => 'attachment; filename="' . $artifact->downloadName . '"',
                 'Content-Length' => (string)$artifact->byteSize,
                 'Cache-Control' => 'no-store',

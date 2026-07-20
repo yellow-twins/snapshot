@@ -5,29 +5,28 @@ declare(strict_types=1);
 namespace YellowTwins\Snapshot\Scrubbing;
 
 use TYPO3\CMS\Core\Database\Connection;
-use TYPO3\CMS\Core\Database\ConnectionPool;
 
 /**
- * Anonymizes personal data in the freshly imported local database. Runs after import, so it
- * only ever touches the local copy. Ships sensible defaults for core tables; projects can add
- * or override rules per table via the "scrub_rules" block in .snapshot.yaml.
+ * Anonymizes personal data in a database copy. The caller decides which connection to scrub, and
+ * is responsible for never passing a connection to production data: the CLI pull scrubs the freshly
+ * imported local copy, the backend export scrubs a throwaway temporary database. Ships sensible
+ * defaults for core tables; extra rules can be merged over them per call.
  */
 final class ScrubbingService
 {
     public function __construct(
-        private readonly ConnectionPool $connectionPool,
         private readonly ScrubExpressionBuilder $expressionBuilder,
     ) {}
 
     /**
+     * @param Connection                     $connection The database to anonymize — MUST be a copy, never production
      * @param array<string, ScrubRule>       $overrides  Rules from configuration, merged over the defaults
      * @param callable(string): void         $onMessage
      * @param callable(int, int): void|null  $onProgress Receives (tables done, total tables) as scrubbing advances
      */
-    public function scrub(array $overrides, callable $onMessage, ?callable $onProgress = null): void
+    public function scrub(Connection $connection, array $overrides, callable $onMessage, ?callable $onProgress = null): void
     {
         $rules = [...$this->defaultRules(), ...$overrides];
-        $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
         $schemaManager = $connection->createSchemaManager();
         $existingTables = $schemaManager->listTableNames();
 

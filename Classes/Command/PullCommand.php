@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use YellowTwins\Snapshot\Configuration\ConfigurationLoader;
 use YellowTwins\Snapshot\Configuration\EnvironmentConfig;
 use YellowTwins\Snapshot\Database\DatabaseConnectionResolver;
@@ -38,6 +39,7 @@ final class PullCommand extends Command
         private readonly ScrubbingService $scrubbingService,
         private readonly PostPullHookRunner $postPullHookRunner,
         private readonly ByteFormatter $byteFormatter,
+        private readonly ConnectionPool $connectionPool,
     ) {
         parent::__construct();
     }
@@ -160,7 +162,9 @@ final class PullCommand extends Command
 
         /** @var ProgressBar|null $progressBar */
         $progressBar = null;
+        $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
         $this->scrubbingService->scrub(
+            $connection,
             $overrides,
             static function (string $message) use (&$progressBar): void {
                 $progressBar?->setMessage($message);
