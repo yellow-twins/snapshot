@@ -71,6 +71,26 @@ final class ScrubbingServiceTest extends FunctionalTestCase
         self::assertSame(0, $connection->count('*', 'fe_users', []));
     }
 
+    #[Test]
+    public function anonymizesBeUsersAndResetsPasswordToTheDevLogin(): void
+    {
+        $connection = $this->connectionPool->getConnectionByName(ConnectionPool::DEFAULT_CONNECTION_NAME);
+        $connection->insert('be_users', ['uid' => 5, 'username' => 'admin.real', 'realName' => 'Real Admin', 'email' => 'admin@real-domain.com', 'password' => 'OLD-REAL-HASH']);
+
+        $this->createService()->scrub($connection, [], static function (string $message): void {});
+
+        $rows = $connection->select(['username', 'realName', 'email', 'password'], 'be_users', ['uid' => 5])->fetchAllAssociative();
+        self::assertCount(1, $rows);
+        // Username is kept so the account stays identifiable/loginable; PII is anonymized.
+        self::assertSame('admin.real', $rows[0]['username']);
+        self::assertSame('Anonymous User', $rows[0]['realName']);
+        self::assertSame('user5@example.invalid', $rows[0]['email']);
+        // The real hash is gone, but the copy stays loginable with the known dev password.
+        self::assertNotSame('OLD-REAL-HASH', $rows[0]['password']);
+        $password = $rows[0]['password'];
+        self::assertTrue(is_string($password) && password_verify('SnapshotDev.1234!', $password));
+    }
+
     private function createService(): ScrubbingService
     {
         return new ScrubbingService(new ScrubExpressionBuilder());

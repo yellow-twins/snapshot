@@ -24,7 +24,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] XLIFF language file stub (en default)
 - [x] DDEV v13 playground testbed (extension bind-mounted + symlinked, TYPO3 recognizes it as active)
 
-**Done:** quality gates green in a real TYPO3 v13 install. CI matrix still to be confirmed on GitHub once pushed.
+**Done:** quality gates green in a real TYPO3 v13 install; **v14 verified too** — all gates pass on
+TYPO3 v14.3 (the only blocker was the `saschaegerer/phpstan-typo3` dev pin, widened to `^2.1 || ^3.0`).
 
 ---
 
@@ -110,10 +111,19 @@ Slice 2b (done):
 - [x] Found + fixed a real bug: the download-token parameter must not be named `token`
       (collides with the backend route CSRF token) — renamed to `dl`.
 
-Slice 2c (next):
-- [ ] Database self-export: local `database:export` + anonymization WITHOUT touching the live DB
-      (temp-database method; needs CREATE DATABASE — capability check + clear fallback message).
+Slice 2c (done):
+- [x] Database self-export with server-side anonymization WITHOUT touching the live DB
+      (temp-database method: copy live → temp, scrub temp, dump temp, drop temp; needs
+      CREATE DATABASE — capability check + clear fallback message). `mysql`/`mysqldump` run with
+      `--no-defaults` so a stray `~/.my.cnf` cannot misdirect the connection.
+- [x] `ScrubbingService::scrub()` takes the target `Connection` explicitly — "never scrub
+      production" is now structural. Functional test proves live DB untouched + dump anonymized.
+- [x] Optional env-gated **raw (un-anonymized) export** (`SNAPSHOT_ALLOW_UNSCRUBBED=1`) for local
+      debugging: opt-in card, server-side re-check, audit-logged, dumps live directly (no temp DB).
+
+Slice 2d (next):
 - [ ] Notification mail on every export; step-up re-auth before prepare; async export for large sites.
+- [ ] Broaden default scrubbing to `be_users` (PII + password hashes) and known secret columns.
 - [ ] Backend UI additive-only scrub-table selection (never weaken the baseline).
 
 ---
@@ -138,9 +148,10 @@ Slice 2c (next):
 
 ## Polish backlog
 
-- **Progress bars in the CLI commands** — Symfony Console progress for the DB dump/import,
-  the rsync transfer (`rsync --info=progress2`), and scrubbing/hooks, so `snapshot:pull` shows
-  a live percentage instead of a spinner.
+- [x] **Progress bars in the CLI commands** — Symfony Console progress for the fileadmin transfer
+      (`rsync --info=progress2`, real %), the DB dump (live byte counter), the DB import (real %
+      via a chunked stdin generator), and scrubbing (step bar). Plus a `database_schema_update`
+      post-pull hook (`*.add` only) and DB-only hook gating on `--files` pulls.
 - Optional `--mirror` / `--delete` flag for a true fileadmin mirror (destructive; opt-in only).
 
 ## Post-v1 backlog

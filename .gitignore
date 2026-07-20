@@ -2,6 +2,7 @@
 /.Build/
 /composer.lock
 /public/
+/packages/
 .php-cs-fixer.cache
 .phpunit.result.cache
 .phpunit.cache/

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Backend **database self-export** with server-side anonymization (M5): copies the live database
+  into a throwaway temporary database, scrubs that copy, dumps it, and drops it — the live database
+  is never modified. `ScrubbingService::scrub()` now takes the target connection explicitly, making
+  "never scrub production" structural. Requires the `CREATE` privilege for the temp database;
+  without it the module shows a clear message and still offers the fileadmin export.
+- Optional **raw (un-anonymized) database export** for local debugging, gated by the environment
+  (`SNAPSHOT_ALLOW_UNSCRUBBED=1`, off by default and never backend-editable): an opt-in, clearly
+  marked card that dumps the live database directly (no temporary database), re-checked server-side
+  and audit-logged.
+- **Progress bars** in the CLI pull: the fileadmin transfer (rsync `--info=progress2`), the database
+  dump (live byte counter), the database import (real percentage via a chunked stdin generator), and
+  scrubbing (step bar). A new `database_schema_update` post-pull hook (`*.add` only) aligns the local
+  schema after a DB pull; DB-only hooks are skipped on a `--files`-only pull.
+- Confirmed TYPO3 **v14** support: all quality gates and tests pass on v14.3.
 - Backend module (M5): admin-only "Snapshot" tools module.
   - Security gate (`ExportGuard`): kill-switch disabled by default, optional IP allowlist,
     mandatory active MFA. Blocked state lists the reasons; controls live outside the backend.
@@ -14,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fileadmin self-export with **single-use, expiring download tokens**: artifacts stored
     outside the web root under a SHA-256-derived name (never the plaintext token), served only
     via the authenticated backend route, consumed atomically, deleted after download. Every
-    prepare/download is audit-logged. (DB self-export with server-side anonymization follows.)
+    prepare/download is audit-logged.
 - DDEV add-on (M4): `ddev add-on get yellow-twins/snapshot` installs `ddev snapshot-pull`,
   `ddev snapshot-doctor`, and `ddev snapshot-list-envs` web commands.
 - Transfer-size preview before a pull: fileadmin size via `rsync --stats`, database size via

@@ -14,6 +14,14 @@ use TYPO3\CMS\Core\Database\Connection;
  */
 final class ScrubbingService
 {
+    /**
+     * Bcrypt hash of the known development password (the plaintext lives in
+     * PostPullHookRunner::DEV_ADMIN_PASSWORD, "SnapshotDev.1234!"). Backend accounts are reset to it
+     * so a scrubbed copy stays loginable without shipping real password hashes. TYPO3 accepts the
+     * bcrypt hash on verify regardless of the site's configured default hashing.
+     */
+    private const DEV_LOGIN_PASSWORD_HASH = '$2y$10$bFaYZLKE/yChCdJMXDSX0O/ON80msabvDOUiIO.KSCr6zNJOL08lm';
+
     public function __construct(
         private readonly ScrubExpressionBuilder $expressionBuilder,
     ) {}
@@ -64,13 +72,15 @@ final class ScrubbingService
      */
     private function anonymize(Connection $connection, string $table, ScrubRule $rule, callable $onMessage): void
     {
-        $columns = array_keys($connection->createSchemaManager()->listTableColumns($table));
+        // Doctrine lowercases the column-name keys, so compare case-insensitively; otherwise a
+        // camelCase column (e.g. be_users.realName) would be treated as missing and skipped.
+        $columns = array_map('strtolower', array_keys($connection->createSchemaManager()->listTableColumns($table)));
         $queryBuilder = $connection->createQueryBuilder();
         $queryBuilder->update($table);
 
         $applied = 0;
         foreach ($rule->set as $column => $template) {
-            if (!in_array($column, $columns, true)) {
+            if (!in_array(strtolower($column), $columns, true)) {
                 continue;
             }
             $expression = $this->expressionBuilder->build(
@@ -112,6 +122,14 @@ final class ScrubbingService
                 'zip' => '',
                 'company' => '',
                 'www' => '',
+            ]),
+            'be_users' => ScrubRule::set([
+                // Anonymize backend account PII and replace every password hash with the known dev
+                // login, so a scrubbed copy carries no real names, e-mails or credential hashes yet
+                // stays loginable (username + the dev password). Non-existent columns are skipped.
+                'realName' => 'Anonymous User',
+                'email' => 'user{uid}@example.invalid',
+                'password' => self::DEV_LOGIN_PASSWORD_HASH,
             ]),
             'sys_log' => ScrubRule::truncate(),
         ];
