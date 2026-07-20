@@ -136,6 +136,13 @@ Slice 2c (next):
 - No multi-site / multi-database installs in v1.
 - Pull-first: `push` guarded, push-to-production disabled by default.
 
+## Polish backlog
+
+- **Progress bars in the CLI commands** — Symfony Console progress for the DB dump/import,
+  the rsync transfer (`rsync --info=progress2`), and scrubbing/hooks, so `snapshot:pull` shows
+  a live percentage instead of a spinner.
+- Optional `--mirror` / `--delete` flag for a true fileadmin mirror (destructive; opt-in only).
+
 ## Post-v1 backlog
 
 - `KubectlTransport` + `S3FileSource` drivers (Kubernetes support).
