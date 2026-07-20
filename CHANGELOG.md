@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Backend module, first slice (M5): admin-only "Snapshot" tools module with a security gate
-  (`ExportGuard` — kill-switch disabled by default, optional IP allowlist, mandatory active MFA)
-  and the design's entry screen. The prepare/export/download flow with single-use tokens follows.
+- Backend module (M5): admin-only "Snapshot" tools module.
+  - Security gate (`ExportGuard`): kill-switch disabled by default, optional IP allowlist,
+    mandatory active MFA. Blocked state lists the reasons; controls live outside the backend.
+  - Theme-aware, interactive entry screen (source selection) — CSP-compliant JS module.
+  - Fileadmin self-export with **single-use, expiring download tokens**: artifacts stored
+    outside the web root under a SHA-256-derived name (never the plaintext token), served only
+    via the authenticated backend route, consumed atomically, deleted after download. Every
+    prepare/download is audit-logged. (DB self-export with server-side anonymization follows.)
 - DDEV add-on (M4): `ddev add-on get yellow-twins/snapshot` installs `ddev snapshot-pull`,
   `ddev snapshot-doctor`, and `ddev snapshot-list-envs` web commands.
 - Transfer-size preview before a pull: fileadmin size via `rsync --stats`, database size via

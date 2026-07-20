@@ -35,14 +35,23 @@
 .snapshot-module .actionbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
 .snapshot-module .actionbar .summary { font-weight: 600; }
 .snapshot-module .actionbar .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
-.snapshot-module .btn { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 10px 20px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.snapshot-module .btn { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 10px 20px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
 .snapshot-module .btn:disabled { opacity: .45; cursor: not-allowed; }
-.snapshot-module .callout { border-radius: 10px; padding: 16px 20px; }
+.snapshot-module .btn.secondary { background: transparent; color: var(--txt); border: 1px solid var(--border); }
+.snapshot-module .callout { border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; }
 .snapshot-module .callout.blocked { background: color-mix(in srgb, #d9342b 14%, var(--surface)); border: 1px solid color-mix(in srgb, #d9342b 40%, var(--surface)); }
 .snapshot-module .callout.blocked h2 { font-size: 16px; font-weight: 700; color: #e05a4f; margin: 0 0 8px; }
 .snapshot-module .callout.blocked ul { margin: 0; padding-left: 18px; }
-.snapshot-module .callout.blocked li { margin: 4px 0; }
+.snapshot-module .callout.success { background: color-mix(in srgb, #1e9e46 14%, var(--surface)); border: 1px solid color-mix(in srgb, #1e9e46 40%, var(--surface)); }
+.snapshot-module .callout.success h2 { font-size: 15px; font-weight: 700; color: #2bb056; margin: 0 0 4px; }
+.snapshot-module .callout.warn { background: color-mix(in srgb, #d9a520 16%, var(--surface)); border: 1px solid color-mix(in srgb, #d9a520 45%, var(--surface)); font-size: 13px; }
+.snapshot-module .flash { background: color-mix(in srgb, #d9a520 16%, var(--surface)); border: 1px solid color-mix(in srgb, #d9a520 45%, var(--surface)); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+.snapshot-module .artifact { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 16px 18px; margin-bottom: 12px; }
+.snapshot-module .artifact .meta { flex: 1; }
+.snapshot-module .artifact .name { font-weight: 700; font-size: 15px; }
+.snapshot-module .artifact .sz { color: var(--muted); font-size: 13px; }
 .snapshot-module .note { color: var(--muted); font-size: 12px; margin-top: 14px; }
+.snapshot-module #snapshot-countdown { font-variant-numeric: tabular-nums; font-weight: 700; }
 </style>
 
 <div class="snapshot-module">
@@ -56,47 +65,79 @@
         <div class="protection"><div class="t">Single-use link</div><div class="s">expires after download</div></div>
     </div>
 
-    <f:if condition="{allowed}">
-        <f:then>
-            <p class="section-label">Select what to include</p>
-            <div class="cards" id="snapshot-cards">
-                <div class="card selected" data-source="db">
-                    <div class="check">&#10003;</div>
-                    <div class="tile db">DB</div>
-                    <div class="title">Database</div>
-                    <div class="size">compressed export</div>
-                    <div class="chips"><span class="chip">database:export</span><span class="chip">cache · logs · sessions excluded</span></div>
-                </div>
-                <div class="card selected" data-source="files">
-                    <div class="check">&#10003;</div>
-                    <div class="tile fa">FA</div>
-                    <div class="title">Fileadmin</div>
-                    <div class="size">archive</div>
-                    <div class="chips"><span class="chip">rsync</span><span class="chip">_processed_ · _temp_ excluded</span></div>
-                </div>
-            </div>
-            <div class="actionbar">
-                <div>
-                    <div class="summary" id="snapshot-summary">Database + Fileadmin</div>
-                    <div class="sub" id="snapshot-sub">Prepare a secured, single-use download</div>
-                </div>
-                <button type="button" class="btn" id="snapshot-prepare">Prepare download</button>
-            </div>
-            <p class="note">The prepare/export step with single-use expiring download tokens is wired next.</p>
-        </f:then>
-        <f:else>
+    <f:if condition="{flash}">
+        <div class="flash">{flash}</div>
+    </f:if>
+
+    <f:switch expression="{phase}">
+        <f:case value="blocked">
             <div class="callout blocked">
                 <h2>Export is not available</h2>
                 <ul>
-                    <f:for each="{problems}" as="problem">
-                        <li>{problem}</li>
-                    </f:for>
+                    <f:for each="{problems}" as="problem"><li>{problem}</li></f:for>
                 </ul>
             </div>
             <p class="note">These controls protect against accidental or malicious data exfiltration.
                 They are configured outside the backend (environment variables) and cannot be disabled from here.</p>
-        </f:else>
-    </f:if>
+        </f:case>
+
+        <f:case value="ready">
+            <div class="callout success">
+                <h2>Snapshot ready</h2>
+                <div class="sz">Anonymized and scrubbed. Your download is armed below.</div>
+            </div>
+            <div class="callout warn">
+                Each link is single-use and expires in <span id="snapshot-countdown" data-seconds="{expirySeconds}">--:--</span>.
+                It stops working after one download.
+            </div>
+            <f:for each="{artifacts}" as="artifact">
+                <div class="artifact">
+                    <div class="tile fa">ZIP</div>
+                    <div class="meta">
+                        <div class="name">{artifact.name}</div>
+                        <div class="sz">· {artifact.size}</div>
+                    </div>
+                    <a class="btn" href="{artifact.url}" download="download">Download</a>
+                </div>
+            </f:for>
+            <f:for each="{notes}" as="noteText">
+                <p class="note">{noteText}</p>
+            </f:for>
+            <p class="note"><a class="btn secondary" href="{f:be.uri(route: 'tools_snapshot')}">Start over</a></p>
+        </f:case>
+
+        <f:defaultCase>
+            <p class="section-label">Select what to include</p>
+            <form method="post" action="{prepareUrl}">
+                <div class="cards" id="snapshot-cards">
+                    <div class="card selected" data-source="db">
+                        <div class="check">&#10003;</div>
+                        <div class="tile db">DB</div>
+                        <div class="title">Database</div>
+                        <div class="size">compressed export</div>
+                        <div class="chips"><span class="chip">database:export</span><span class="chip">cache · logs · sessions excluded</span></div>
+                        <input type="checkbox" name="sources[]" value="db" checked="checked" hidden="hidden" />
+                    </div>
+                    <div class="card selected" data-source="files">
+                        <div class="check">&#10003;</div>
+                        <div class="tile fa">FA</div>
+                        <div class="title">Fileadmin</div>
+                        <div class="size">archive</div>
+                        <div class="chips"><span class="chip">rsync</span><span class="chip">_processed_ · _temp_ excluded</span></div>
+                        <input type="checkbox" name="sources[]" value="files" checked="checked" hidden="hidden" />
+                    </div>
+                </div>
+                <div class="actionbar">
+                    <div>
+                        <div class="summary" id="snapshot-summary">Database + Fileadmin</div>
+                        <div class="sub" id="snapshot-sub">Prepare a secured, single-use download</div>
+                    </div>
+                    <button type="submit" class="btn" id="snapshot-prepare">Prepare download</button>
+                </div>
+            </form>
+            <p class="note">Database export (anonymized server-side) is being wired next; fileadmin export is live.</p>
+        </f:defaultCase>
+    </f:switch>
 </div>
 
 </html>

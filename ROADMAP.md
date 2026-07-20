@@ -96,17 +96,25 @@ Slice 1 (done):
 - [x] Controller + Fluid template (idle screen from the design + security-blocked state)
 - [x] `ExportGuard` — kill-switch (disabled by default), IP allowlist (env), MFA required. Safe by default.
 
-Slice 2 (next):
-- [ ] Prepare/export flow: self-export of THIS instance (local DB via database:export + scrub + fileadmin archive)
-- [ ] Single-use, expiring, non-guessable download token (fixes the predictable-resource-location flaw)
-- [ ] `AuditLogger` — sys_log + notification mail on every export
-- [ ] Step-up re-auth before export; async export for large sites
-- [ ] Backend UI additive-only scrub-table selection (never weaken the baseline)
-- [ ] Tests for the security guards (highest-risk code)
+Slice 2a (done):
+- [x] Theme-aware rendering (TYPO3 `light-dark()` CSS vars) + interactive idle screen (JS module
+      via import map, CSP-compliant). Verified in a real v13 backend behind a real MFA login.
 
-**Slice 1 verified structurally** (gates green, module/icon config parses). Visual backend
-verification pending (browser). **Note:** the backend export is a *self-export* of the current
-instance — distinct from the pull services (remote → local).
+Slice 2b (done):
+- [x] Prepare/export flow (fileadmin self-export) + **single-use, expiring, non-guessable
+      download tokens** stored outside the web root (SHA-256-named, never the plaintext token).
+- [x] Download endpoint: atomic single-use consume, streamed attachment, file deleted after.
+- [x] `AuditLogger` — every prepare/download/rejection recorded to a dedicated audit log.
+- [x] Verified end-to-end in the backend: prepare → ready (countdown) → download → consumed → audited.
+      Unit tests for the token service (single-use, expiry, hash-not-in-filename, purge).
+- [x] Found + fixed a real bug: the download-token parameter must not be named `token`
+      (collides with the backend route CSRF token) — renamed to `dl`.
+
+Slice 2c (next):
+- [ ] Database self-export: local `database:export` + anonymization WITHOUT touching the live DB
+      (temp-database method; needs CREATE DATABASE — capability check + clear fallback message).
+- [ ] Notification mail on every export; step-up re-auth before prepare; async export for large sites.
+- [ ] Backend UI additive-only scrub-table selection (never weaken the baseline).
 
 ---
 
