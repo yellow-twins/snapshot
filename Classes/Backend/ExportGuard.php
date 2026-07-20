@@ -28,7 +28,7 @@ final class ExportGuard
         if (!$this->ipAllowed($request)) {
             $problems[] = 'Your IP address is not in the allowlist (SNAPSHOT_ALLOWED_IPS).';
         }
-        if (!$this->mfaActive()) {
+        if ($this->mfaRequired() && !$this->mfaActive()) {
             $problems[] = 'Two-factor authentication must be active on your backend account before you can export.';
         }
 
@@ -38,6 +38,12 @@ final class ExportGuard
     private function backendEnabled(): bool
     {
         return getenv('SNAPSHOT_BACKEND_ENABLED') === '1';
+    }
+
+    private function mfaRequired(): bool
+    {
+        // Mandatory by default; opt out only in trusted/local contexts.
+        return getenv('SNAPSHOT_REQUIRE_MFA') !== '0';
     }
 
     private function ipAllowed(ServerRequestInterface $request): bool

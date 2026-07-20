@@ -83,11 +83,19 @@ final class SnapshotModuleController
 
         $this->auditLogger->record('prepared', ['sources' => $sources, 'artifacts' => count($artifacts)]);
 
+        // Database-only for now produces no artifact (DB export lands in the next release); bounce
+        // back to the selection screen with a clear explanation instead of silently doing nothing.
+        $flash = null;
+        if ($artifacts === []) {
+            $flash = 'Database export (anonymized server-side) is being wired in the next release. Select Fileadmin to download a snapshot now.';
+        }
+
         return $this->render($request, [
             'phase' => $artifacts === [] ? 'idle' : 'ready',
             'problems' => [],
             'artifacts' => $artifacts,
             'notes' => $notes,
+            'flash' => $flash,
             'expirySeconds' => self::TOKEN_TTL_SECONDS,
         ]);
     }

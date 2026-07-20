@@ -28,6 +28,21 @@ See [ROADMAP.md](./ROADMAP.md) and [CONCEPT.md](./CONCEPT.md).
 - PHP 8.2+
 - For CLI pulls: SSH access to the source environment, `rsync` available locally and remotely.
 
+## Backend module configuration (Pillar A)
+
+The backend export module is **off by default** and gated by environment variables (kept out of
+the backend so a compromised admin cannot weaken them):
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SNAPSHOT_BACKEND_ENABLED` | *(unset = off)* | Master kill-switch. Set to `1` to enable the module. |
+| `SNAPSHOT_ALLOWED_IPS` | *(unset = no restriction)* | Comma-separated IPs/ranges allowed to export. |
+| `SNAPSHOT_REQUIRE_MFA` | `1` (required) | Set to `0` to drop the mandatory-2FA check (only in trusted/local contexts). |
+
+GDPR anonymization and secret scrubbing are guarantees of the backend export and are not
+disable-able from the backend. For the **CLI pull**, scrubbing is controlled per project in
+`.snapshot.yaml` (`defaults.scrub`) and per run with `--no-scrub`.
+
 ## License
 
 GPL-2.0-or-later. See [LICENSE](./LICENSE).
