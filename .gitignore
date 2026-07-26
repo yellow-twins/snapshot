@@ -8,5 +8,6 @@
 .phpunit.cache/
 /var/
 .DS_Store
+/.idea/
 /.snapshot.yaml
 /.env
