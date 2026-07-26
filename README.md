@@ -24,13 +24,71 @@ refreshing a stale local database.
 **Public beta (0.9.0).** Targets TYPO3 **v14** (primary) and **v13** LTS, PHP ≥ 8.2. The CLI pull
 and the backend module (database + fileadmin, anonymized) are feature-complete and tested; the
 remaining pre-1.0 work is community feedback plus notification mail and step-up re-auth for the
-backend module. See [ROADMAP.md](./ROADMAP.md).
+backend module.
 
 ## Requirements
 
 - TYPO3 13.4+ or 14
 - PHP 8.2+
 - For CLI pulls: SSH access to the source environment, `rsync` available locally and remotely.
+
+## Getting started (CLI pull)
+
+Snapshot is configured per project through a single file, **`.snapshot.yaml`**, which lives in
+your **TYPO3 project root** (next to `composer.json`) — the same directory you run
+`vendor/bin/typo3` from. The extension ships a documented template, `.snapshot.yaml.dist`; copy it
+and adjust:
+
+```bash
+cp .snapshot.yaml.dist .snapshot.yaml
+```
+
+`.snapshot.yaml` is **git-ignored** by Snapshot's own `.gitignore`; keep it out of version control
+in your project too, because it maps your environments. It holds **structure only** — every
+sensitive value (hosts, users, paths, credentials) belongs in `.env` and is referenced with
+`%env(NAME)%`, so the file itself stays safe to share in redacted form. The `.dist` template is
+fully commented; the essentials are:
+
+- `environments:` — one block per source (`live`, `stage`, …) with its `transport` (ssh), `host`,
+  `user`, `port`, `path` (the TYPO3 project root on the server) and `file_source` (rsync). Add an
+  optional `db:` block when the DB credentials only exist in the web context and aren't readable
+  from the SSH shell.
+- `defaults:` — `scrub` (GDPR anonymization, on by default), tables/paths to exclude, extra
+  `scrub_rules`, and the `post_pull` hooks that make the site runnable after a pull.
+- `guards:` — safety rails, e.g. `push_to_live: false`.
+
+Then verify the connection and pull:
+
+```bash
+vendor/bin/typo3 snapshot:doctor --from=stage   # preflight: tools, SSH, DB reachability
+vendor/bin/typo3 snapshot:pull --from=stage      # pull DB + fileadmin (anonymized)
+```
+
+See the [full documentation](./Documentation/Index.rst) for every option.
+
+## DDEV integration
+
+Snapshot ships a DDEV add-on that wraps the CLI in native `ddev` commands, so you don't have to
+remember the `vendor/bin/typo3` invocations. Install it once per project:
+
+```bash
+ddev add-on get yellow-twins/snapshot
+```
+
+This registers three web commands, which take the same options as the CLI:
+
+```bash
+ddev snapshot-pull --from=live
+ddev snapshot-doctor --from=stage
+ddev snapshot-list-envs
+```
+
+Pulls run inside the DDEV web container, so it needs your SSH key to reach the source. Authorize it
+once per session before pulling:
+
+```bash
+ddev auth ssh
+```
 
 ## Backend module configuration (Pillar A)
 

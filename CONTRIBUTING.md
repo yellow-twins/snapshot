@@ -19,8 +19,7 @@ extension. Contributions are welcome — please keep the quality bar high.
 ## Scope
 
 Snapshot is a **developer provisioning tool**, not a backup tool. Please keep proposals
-within that scope (see [CONCEPT.md](./CONCEPT.md)). Backup/scheduler/off-site-storage
-features are intentionally out of scope.
+within that scope. Backup/scheduler/off-site-storage features are intentionally out of scope.
 
 ## Local setup
 
